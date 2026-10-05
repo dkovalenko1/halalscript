@@ -1,0 +1,10 @@
+assalamu alaikum
+inshallah dirham a := 10
+bismillah fatwa b := halal
+istikhara b {
+    a := a + 5
+}
+qadarallah {
+    a := a - 5
+}
+ameen a

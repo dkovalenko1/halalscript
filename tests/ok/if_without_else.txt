@@ -1,0 +1,7 @@
+assalamu alaikum
+inshallah dirham charity := 0
+bismillah fatwa generous := halal
+istikhara generous yalla
+    charity := charity + 10
+khalas
+ameen charity

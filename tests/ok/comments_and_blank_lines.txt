@@ -1,0 +1,15 @@
+# a comment before the greeting is no greeting, and no statement either
+
+assalamu alaikum   # peace be upon you
+
+# السلام عليكم — Arabic text is lawful inside a comment
+	bismillah dirham x := 1	# tabs are tolerated
+inshallah dirham y := x   
+
+
+istikhara x == y yalla   # the block opener ends its line
+    # a comment inside a block is not a statement, but the block holds one
+    y := 2
+khalas
+
+ameen y

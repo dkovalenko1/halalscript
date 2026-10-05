@@ -1,0 +1,6 @@
+assalamu alaikum
+bismillah dirham Bismillah := 1
+bismillah dirham _hidden2 := 2
+inshallah dinar halal_money := Bismillah + _hidden2
+bismillah fatwa WALLAHI := halal
+ameen halal_money

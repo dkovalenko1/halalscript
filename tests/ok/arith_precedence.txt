@@ -1,0 +1,5 @@
+assalamu alaikum
+bismillah dirham x := 2 + 3 * 4
+bismillah dirham y := 10 - 3 - 2
+bismillah dirham z := 1 + 2 * 3 + 4
+ameen x * y - z

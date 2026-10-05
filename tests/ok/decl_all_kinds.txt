@@ -1,0 +1,6 @@
+assalamu alaikum
+wallahi dirham NISAB := 85
+bismillah dirham wealth := NISAB * 3
+inshallah dinar savings := wealth
+savings := savings + 1
+ameen savings

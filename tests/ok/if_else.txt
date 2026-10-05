@@ -1,0 +1,10 @@
+assalamu alaikum
+inshallah dirham r := 0
+bismillah dinar n := 3
+istikhara n == 3 yalla
+    r := 1
+khalas
+qadarallah yalla
+    r := 2
+khalas
+ameen r

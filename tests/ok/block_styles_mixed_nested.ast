@@ -1,0 +1,25 @@
+Program
+  Decl level dirham inshallah (mutable)
+    Int 0
+  Istikhara
+    BinOp ==
+      Var level
+      Int 0
+    Block brace
+      Istikhara
+        BinOp !=
+          Var level
+          Int 1
+        Block yalla
+          Assign level
+            Int 1
+        Qadarallah
+          Block brace
+            Assign level
+              Int 2
+    Qadarallah
+      Block yalla
+        Assign level
+          Int 3
+  Ameen
+    Var level

@@ -1,0 +1,15 @@
+Program
+  Decl NISAB dirham wallahi (constant)
+    Int 85
+  Decl wealth dirham bismillah (immutable)
+    BinOp *
+      Var NISAB
+      Int 3
+  Decl savings dinar inshallah (mutable)
+    Var wealth
+  Assign savings
+    BinOp +
+      Var savings
+      Int 1
+  Ameen
+    Var savings

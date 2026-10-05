@@ -1,0 +1,4 @@
+assalamu alaikum
+inshallah dirham x := 1
+bismillah fatwa f := x = 1
+ameen f

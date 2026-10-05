@@ -1,0 +1,27 @@
+Program
+  Decl x dirham bismillah (immutable)
+    BinOp +
+      Int 2
+      BinOp *
+        Int 3
+        Int 4
+  Decl y dirham bismillah (immutable)
+    BinOp -
+      BinOp -
+        Int 10
+        Int 3
+      Int 2
+  Decl z dirham bismillah (immutable)
+    BinOp +
+      BinOp +
+        Int 1
+        BinOp *
+          Int 2
+          Int 3
+      Int 4
+  Ameen
+    BinOp -
+      BinOp *
+        Var x
+        Var y
+      Var z

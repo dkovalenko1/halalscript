@@ -1,0 +1,19 @@
+Program
+  Decl a dirham inshallah (mutable)
+    Int 10
+  Decl b dirham inshallah (mutable)
+    Int 2
+  Assign a
+    BinOp -
+      BinOp *
+        Var a
+        Var b
+      Int 1
+  Assign b
+    BinOp +
+      Var a
+      BinOp *
+        Var b
+        Int 3
+  Ameen
+    Var b

@@ -1,0 +1,14 @@
+assalamu alaikum
+inshallah dirham level := 0
+istikhara level == 0 {
+    istikhara level != 1 yalla
+        level := 1
+    khalas
+    qadarallah {
+        level := 2
+    }
+}
+qadarallah yalla
+    level := 3
+khalas
+ameen level

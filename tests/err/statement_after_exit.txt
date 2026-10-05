@@ -1,0 +1,4 @@
+assalamu alaikum
+bismillah dirham x := 1
+ameen x
+bismillah dirham y := 2

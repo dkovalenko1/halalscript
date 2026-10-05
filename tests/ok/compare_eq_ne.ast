@@ -1,0 +1,21 @@
+Program
+  Decl a dirham bismillah (immutable)
+    Int 5
+  Decl same fatwa bismillah (immutable)
+    BinOp ==
+      Var a
+      Int 5
+  Decl different fatwa bismillah (immutable)
+    BinOp !=
+      BinOp *
+        Var a
+        Int 2
+      BinOp +
+        Var a
+        Int 5
+  Decl verdicts fatwa bismillah (immutable)
+    BinOp ==
+      Var same
+      Var different
+  Ameen
+    Var verdicts

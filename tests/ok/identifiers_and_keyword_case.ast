@@ -1,0 +1,13 @@
+Program
+  Decl Bismillah dirham bismillah (immutable)
+    Int 1
+  Decl _hidden2 dirham bismillah (immutable)
+    Int 2
+  Decl halal_money dinar inshallah (mutable)
+    BinOp +
+      Var Bismillah
+      Var _hidden2
+  Decl WALLAHI fatwa bismillah (immutable)
+    Bool halal
+  Ameen
+    Var halal_money
