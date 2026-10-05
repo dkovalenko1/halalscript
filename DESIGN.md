@@ -440,7 +440,9 @@ initialiser may use only literals and other `wallahi` names.
 
 Format fixed by the spec: one line on stderr,
 `compilation error: line L:C: <message>`, non-zero exit, no output.
-Messages read **technical fact — ornamental verdict**. The position is the
+Messages read **technical fact — ornamental verdict**. The lexical and syntax messages below are
+the design; the exact implemented wording (a few more cases, slightly refined
+phrasing) is recorded in `tests/err/*.expected`, which is authoritative. The position is the
 first character of the offending token; for "found end of line" errors it is
 the column right after the last token of the line (as in Practice 3).
 

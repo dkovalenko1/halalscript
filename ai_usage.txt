@@ -1,0 +1,101 @@
+AI USAGE DISCLOSURE — HalalScript, Project Stage 1
+===================================================
+
+Tool: Claude Code (model Claude Opus 5.5), run through the T3 Code desktop app,
+with access to my local folder containing the course PDFs (practice files,
+stage 1 task) and my practice repository languages-and-compilers-design.
+
+Transcript: the whole work was done in one Claude Code session on
+2026-10-05. The prompts are reproduced verbatim below.
+
+The AI wrote most of the text and code in this repository. I gave the language
+idea, made every design decision listed below, and reviewed the result.
+
+
+1. PROMPTS (verbatim, in order)
+-------------------------------
+
+Prompt 1 (with w04-project-stage1.pdf attached):
+
+  check the stage file [w04-project-stage1.pdf] , we need to implement it. get
+  familiar with the other practice files in the practice files folder to get
+  the understanding of the requirements and the [languages-and-compilers-design]
+  repo with practice implementations.
+
+  The language idea is HalalScript, humorous language with syntax like
+  'bismillah' for immutable declaration, 'inshallah' for mutable declaration
+  etc. I want the syntax to be close to the real meanings, so for each keyword
+  let's add the explanation of our choice. That explanations should be
+  Pseudo-Dogmatic/Grandiloquent Irony, as well as the compiler and other errors
+  that we raise.
+
+  First of all let's create a complete design for the syntax and define other
+  language design rules, no code for now. Use halalscript/ directory (ignore
+  [halalscript_codex] completely). Propose the syntax that covers stage
+  requirements and my design idea, with several options on a keywords.
+
+Prompt 2:
+
+  1. wallahi instead of maktub for compile-time constant. keep the rest of
+     keywords default.
+  2. use bismillah dirham x := 10 shape for declaration.
+  3. let's support both {} and `yalla`/`khalas` version for the block
+     delimiters.
+  4. opening greeting should be required (Assalamu alaikum), keep Arabic
+     digits.
+  5. incude parentheses and `la` in stage 1.
+  6. no emoji aliases at all.
+  7. Comments — #.
+
+  i am more than happy with the rest. what is the next step?
+
+Prompt 3:
+
+  repo is https://github.com/dkovalenko1/halalscript.git, vova is already
+  invited. you can start the implementation. stop when the result is ready,
+  tested and verified.
+
+
+2. WHAT THE AI PRODUCED
+-----------------------
+
+- DESIGN.md: first a draft that offered several spellings for each keyword
+  (with emoji aliases, ornate brackets, and other options), then the final
+  version after my decisions in prompt 2. It holds the keyword explanations
+  ("Official Rulings"), lexical rules, grammar, AST shape, overflow ("riba")
+  plan for all three stages, and the error catalogue.
+- grammar.ebnf: written from the final design.
+- src/lexer.py: the byte state machine. Includes Eastern Arabic digits
+  (two-byte UTF-8), the i64 literal limit, columns counted in characters,
+  and UTF-8 checks for unknown characters.
+- src/parser.py: recursive descent with peek/eat, one method per grammar rule,
+  and every syntax error message.
+- src/ast_nodes.py, src/errors.py, compiler.py.
+- tests/ok (19 programs + .ast), tests/err (38 programs + .expected), check.py.
+- README.md and this file.
+
+The AI ran every test program, read each --ast tree and each error position to
+check them against the grammar by hand before saving them as the expected
+output, and checked that check.py really reports a FAIL when an expected
+file is wrong.
+
+
+3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
+-------------------------------------------------------------
+
+The language idea (HalalScript, bismillah = immutable, inshallah = mutable,
+explanations and errors written in pseudo-dogmatic grandiloquent irony) is mine.
+From the AI's first design draft I changed:
+
+- compile-time constant keyword: the AI recommended `maktub`; I chose `wallahi`;
+- declaration shape: chose `bismillah dirham x := 10` out of three options;
+- blocks: the AI recommended only `yalla`/`khalas`; I asked for both
+  `yalla`/`khalas` and `{ }`;
+- the greeting `assalamu alaikum` is required (the AI offered it as an option);
+- kept Eastern Arabic digits; included parentheses and `la` in stage 1;
+- removed all emoji aliases, which the AI had proposed for every keyword;
+- comments with `#`.
+
+Taken as proposed: the other keywords (dirham, dinar, fatwa, halal/haram,
+istikhara, qadarallah, yalla/khalas, ameen, la), their explanations, the error
+messages, the AST dump format, and the test programs.
