@@ -18,6 +18,40 @@ Language support for [HalalScript](../README.md) files (`.halal`).
   on macOS, `Ctrl+Alt+A` elsewhere), *Convert digits to Western (0-9)*, and
   *Show the syntax tree* (the `--ast` dump beside the program).
 
+## Screenshots
+
+**Highlighting** — declarations, types, control words, `la`, Western and Eastern
+Arabic numerals, operators and comments.
+
+![Highlighting](images/1-highlighting.png)
+
+**The compiler's verdict, as you type** — the closer of a broken covenant is
+underlined; the hover and the Problems panel show the compiler's message.
+
+![Compiler error](images/2-compiler-error.png)
+
+**The Official Ruling on hover**
+
+![Hover on bismillah](images/3-hover-ruling.png)
+
+**Completion with documentation, and the snippets**
+
+![Completion](images/4-completion.png)
+
+**The syntax tree beside the program** (*HalalScript: Show the syntax tree*)
+
+![Syntax tree](images/5-syntax-tree.png)
+
+**Eastern Arabic numerals** — their value on hover.
+
+![Arabic numeral hover](images/6-arabic-numeral.png)
+
+The screenshots are produced by `npm run screenshots` (macOS): it opens
+`test/showcase` in a downloaded VS Code, sets up each scene with VS Code
+commands, and captures the screen.
+
+## Requirements
+
 Requires Python 3.10+ on the PATH (setting `halalscript.pythonPath`). The setting
 `halalscript.compilerPath` points the extension at another `compiler.py`.
 

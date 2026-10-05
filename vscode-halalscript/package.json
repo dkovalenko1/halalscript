@@ -127,7 +127,8 @@
     "test:integration": "npm run compile && node ./out/test/runTest.js",
     "test": "npm run test:grammar && npm run test:integration",
     "vscode:prepublish": "npm run compile",
-    "package": "vsce package --allow-missing-repository"
+    "package": "vsce package --allow-missing-repository",
+    "screenshots": "npm run compile && node ./out/screenshots/runScreenshots.js"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
