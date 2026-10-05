@@ -1,0 +1,39 @@
+assalamu alaikum   # every program begins with the greeting, in full
+
+# A tour of HalalScript. Open this file in VS Code with the extension
+# installed: hover over any keyword for its Official Ruling, and try the
+# experiments in the comments to see the compiler's verdicts.
+
+# ---- declarations: the three degrees of certainty --------------------------
+wallahi dinar LIMIT := 3000000000    # sworn constant, known at compile time
+bismillah dirham year := ١٤٤٦        # immutable; Eastern Arabic digits are lawful
+inshallah dinar total := year * 2    # mutable, if God wills
+
+# ---- types: dirham (i32), dinar (i64), fatwa (bool: halal / haram) ---------
+bismillah fatwa generous := halal
+inshallah fatwa ruling := haram
+
+# ---- assignment, arithmetic, comparison, negation --------------------------
+total := total + 10 * (year - 1)     # * binds tighter than + and -
+ruling := total != LIMIT             # one comparison per expression
+ruling := la (ruling == generous)    # la is "no"
+
+# Experiment: write  ruling := total = LIMIT  (a single '=')
+# Experiment: write  ruling := !ruling
+
+# ---- istikhara / qadarallah, in either block style -------------------------
+istikhara generous yalla
+    total := total - 1
+    istikhara ruling {               # blocks nest, and styles may mix
+        total := 0
+    }
+khalas
+qadarallah {
+    bismillah dirham inner := 7      # a block is a scope of its own
+    ameen inner                      # a block may end with ameen
+}
+
+# Experiment: close the qadarallah block with khalas instead of }
+# Experiment: delete the line with ameen at the very end
+
+ameen total                          # so be it

@@ -4,6 +4,7 @@ tests/ok/*.txt   must parse: exit code 0, empty stderr, and the --ast output
                  equal to the .ast file next to the program
 tests/err/*.txt  must be rejected: a non-zero exit code, nothing on stdout, and
                  stderr equal to the .expected file next to the program
+examples/*.halal must parse: exit code 0 and empty stderr
 
 Exit status 0 only when every test passes.
 """
@@ -51,10 +52,20 @@ def check_err(source: Path) -> str | None:
     return None
 
 
+def check_example(source: Path) -> str | None:
+    result = run_ast(source)
+    if result.returncode != 0 or result.stderr:
+        return "rejected: " + result.stderr.strip()
+    return None
+
+
 def main() -> int:
     rows = []
-    for suite, check in (("ok", check_ok), ("err", check_err)):
-        for source in sorted((TESTS / suite).glob("*.txt")):
+    suites = [("ok", check_ok, TESTS / "ok", "*.txt"),
+              ("err", check_err, TESTS / "err", "*.txt"),
+              ("examples", check_example, ROOT / "examples", "*.halal")]
+    for suite, check, directory, pattern in suites:
+        for source in sorted(directory.glob(pattern)):
             reason = check(source)
             rows.append((suite, source.stem, "PASS" if reason is None else "FAIL", reason or ""))
 

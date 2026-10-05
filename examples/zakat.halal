@@ -1,0 +1,18 @@
+assalamu alaikum   # peace be upon you
+
+# How much zakat is owed on a year of savings?
+wallahi dirham NISAB := 85             # sworn: the threshold, in grams of gold
+wallahi dirham RATE := 25              # 2.5 %, kept in tenths
+bismillah dinar savings := ١٢٠٠٠٠     # Eastern Arabic digits are lawful
+inshallah dinar zakat := 0
+
+bismillah fatwa owed := la (savings == 0)
+
+istikhara owed yalla
+    zakat := savings * RATE
+khalas
+qadarallah {
+    zakat := 0
+}
+
+ameen zakat

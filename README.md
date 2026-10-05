@@ -35,6 +35,12 @@ ameen total
 
 ---
 
+Two complete programs live in [`examples/`](examples): `tour.halal` walks
+through every feature, with experiments in its comments that trigger the
+compiler's errors, and `zakat.halal` is a small calculation. Open them in VS Code
+with the [extension](#vs-code-extension) to try the highlighting, the hovers and
+the live errors.
+
 ## Running the compiler
 
 Requirements: Python 3.10 or newer. There are no dependencies to install and
@@ -45,9 +51,9 @@ git clone https://github.com/dkovalenko1/halalscript.git
 cd halalscript
 git checkout stage1
 
-python3 compiler.py --ast program.txt      # print the syntax tree
-python3 compiler.py --tokens program.txt   # print the tokens (debugging)
-python3 compiler.py program.txt            # only check the program
+python3 compiler.py --ast examples/tour.halal      # print the syntax tree
+python3 compiler.py --tokens examples/tour.halal   # print the tokens (debugging)
+python3 compiler.py examples/tour.halal            # only check the program
 ```
 
 On an error the compiler prints exactly one line to stderr, prints nothing to
@@ -78,7 +84,8 @@ python3 check.py
 `check.py` runs every program in `tests/ok` (it must parse, and its `--ast`
 output must equal the `.ast` file next to it) and every program in
 `tests/err` (it must be rejected, with stderr equal to the `.expected` file next
-to it). It prints a PASS/FAIL table, lists the failed tests, and exits non-zero
+to it), and checks that every program in `examples/` is accepted. It prints a
+PASS/FAIL table, lists the failed tests, and exits non-zero
 if any test fails. There are 19 valid and 38 invalid programs, each named after
 what it covers.
 

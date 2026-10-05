@@ -66,3 +66,6 @@ code --install-extension halalscript-0.1.0.vsix
 ```
 
 To try it without installing, open this folder in VS Code and press F5.
+
+Then open [`../examples/tour.halal`](../examples/tour.halal): hover the keywords,
+and follow the experiments in its comments to see the errors appear.
