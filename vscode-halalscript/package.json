@@ -18,6 +18,17 @@
   ],
   "main": "./out/extension.js",
   "activationEvents": [],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In Restricted Mode the compiler always runs from the halalscript.pythonPath and halalscript.compilerPath of your user settings; a workspace cannot change which program runs.",
+      "restrictedConfigurations": [
+        "halalscript.pythonPath",
+        "halalscript.compilerPath"
+      ]
+    },
+    "virtualWorkspaces": false
+  },
   "contributes": {
     "languages": [
       {
