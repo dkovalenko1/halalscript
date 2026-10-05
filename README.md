@@ -58,6 +58,18 @@ stdout, and exits with code 1:
 compilation error: line 3:17: 'yalla' is never answered by 'khalas' — a journey begun was not concluded
 ```
 
+## VS Code extension
+
+[`vscode-halalscript/`](vscode-halalscript/README.md) adds HalalScript support to
+VS Code for `.halal` files: highlighting, the compiler's errors underlined as you
+type, keyword rulings on hover, completion, snippets, `yalla`/`khalas` bracket
+matching, Eastern Arabic digit conversion, and a syntax-tree viewer.
+
+```sh
+cd vscode-halalscript && npm install && npm run package
+code --install-extension halalscript-0.1.0.vsix
+```
+
 ## Running the tests
 
 ```sh
@@ -330,4 +342,5 @@ DESIGN.md            the language design and the full error catalogue
 tests/ok, tests/err  test programs with their expected output
 check.py             the test runner
 ai_usage.txt         AI usage disclosure
+vscode-halalscript/  the optional VS Code extension (not graded)
 ```

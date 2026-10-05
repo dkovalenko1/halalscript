@@ -56,6 +56,18 @@ Prompt 3:
   tested and verified.
 
 
+Prompt 4 (after the stage was done):
+
+  ok it looks great for now. now i would like to add an vscode extension. how
+  hard will it be, what features could it support and how can we do that?
+
+Prompt 5:
+
+  both levels, `.halal` is the default. you can then check how it actually
+  works in vscode using the computer use. tell me wether you can use the
+  computer now.
+
+
 2. WHAT THE AI PRODUCED
 -----------------------
 
@@ -73,6 +85,12 @@ Prompt 3:
 - src/ast_nodes.py, src/errors.py, compiler.py.
 - tests/ok (19 programs + .ast), tests/err (38 programs + .expected), check.py.
 - README.md and this file.
+- vscode-halalscript/ (optional Task 3, not graded): the whole VS Code extension
+  — TextMate grammar, language configuration, snippets, the TypeScript
+  extension (live diagnostics through the bundled compiler, hover, completion,
+  digit conversion, --ast viewer), grammar tests and integration tests that run
+  inside a downloaded VS Code. The AI proposed the feature list; I chose to do
+  both proposed levels and the .halal file extension.
 
 The AI ran every test program, read each --ast tree and each error position to
 check them against the grammar by hand before saving them as the expected
