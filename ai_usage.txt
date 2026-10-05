@@ -68,6 +68,21 @@ Prompt 5:
   computer now.
 
 
+Prompt 6:
+
+  check again, should be able now. verify, take a screenshot of the final
+  result and report back.
+
+Prompt 7 (answering a macOS screen-recording permission dialog):
+
+  approved
+
+Prompt 8:
+
+  maybe create few more screenshots showcasing the functionality. you can
+  check the folder as trusted for that.
+
+
 2. WHAT THE AI PRODUCED
 -----------------------
 
@@ -90,7 +105,10 @@ Prompt 5:
   extension (live diagnostics through the bundled compiler, hover, completion,
   digit conversion, --ast viewer), grammar tests and integration tests that run
   inside a downloaded VS Code. The AI proposed the feature list; I chose to do
-  both proposed levels and the .halal file extension.
+  both proposed levels and the .halal file extension. While checking the
+  extension in my own VS Code, the AI found that it was switched off in
+  Restricted Mode and fixed it, and it wrote the script that takes the
+  screenshots in vscode-halalscript/images.
 
 The AI ran every test program, read each --ast tree and each error position to
 check them against the grammar by hand before saving them as the expected
