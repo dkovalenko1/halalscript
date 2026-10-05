@@ -1,0 +1,141 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "HalalScript",
+  "scopeName": "source.halalscript",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#greeting" },
+    { "include": "#declaration" },
+    { "include": "#keywords" },
+    { "include": "#literals" },
+    { "include": "#operators" },
+    { "include": "#punctuation" },
+    { "include": "#identifier" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "(#).*$",
+      "name": "comment.line.number-sign.halalscript",
+      "captures": {
+        "1": { "name": "punctuation.definition.comment.halalscript" }
+      }
+    },
+    "greeting": {
+      "match": "\\b(assalamu)\\s+(alaikum)\\b",
+      "name": "meta.greeting.halalscript",
+      "captures": {
+        "1": { "name": "keyword.other.greeting.halalscript" },
+        "2": { "name": "keyword.other.greeting.halalscript" }
+      }
+    },
+    "declaration": {
+      "comment": "wallahi|bismillah|inshallah <type> <name>: the declared name gets its own scope",
+      "patterns": [
+        {
+          "match": "\\b(wallahi)\\s+(dirham|dinar|fatwa)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": { "name": "storage.modifier.constant.halalscript" },
+            "2": { "name": "storage.type.halalscript" },
+            "3": { "name": "variable.other.constant.declaration.halalscript" }
+          }
+        },
+        {
+          "match": "\\b(bismillah|inshallah)\\s+(dirham|dinar|fatwa)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": { "name": "storage.modifier.halalscript" },
+            "2": { "name": "storage.type.halalscript" },
+            "3": { "name": "variable.other.declaration.halalscript" }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\bwallahi\\b",
+          "name": "storage.modifier.constant.halalscript"
+        },
+        {
+          "match": "\\b(bismillah|inshallah)\\b",
+          "name": "storage.modifier.halalscript"
+        },
+        {
+          "match": "\\b(dirham|dinar|fatwa)\\b",
+          "name": "storage.type.halalscript"
+        },
+        {
+          "match": "\\b(istikhara|qadarallah|ma_dama)\\b",
+          "name": "keyword.control.conditional.halalscript"
+        },
+        {
+          "match": "\\b(yalla|khalas)\\b",
+          "name": "keyword.control.block.halalscript"
+        },
+        {
+          "match": "\\bameen\\b",
+          "name": "keyword.control.exit.halalscript"
+        },
+        {
+          "match": "\\bla\\b",
+          "name": "keyword.operator.logical.halalscript"
+        },
+        {
+          "match": "\\b(assalamu|alaikum)\\b",
+          "name": "keyword.other.greeting.halalscript"
+        }
+      ]
+    },
+    "literals": {
+      "patterns": [
+        {
+          "match": "\\b(halal|haram)\\b",
+          "name": "constant.language.boolean.halalscript"
+        },
+        {
+          "match": "\\b[0-9]+\\b",
+          "name": "constant.numeric.decimal.halalscript"
+        },
+        {
+          "match": "[\\x{0660}-\\x{0669}]+",
+          "name": "constant.numeric.decimal.arabic.halalscript"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "match": ":=",
+          "name": "keyword.operator.assignment.halalscript"
+        },
+        {
+          "match": "==|!=",
+          "name": "keyword.operator.comparison.halalscript"
+        },
+        {
+          "match": "[+\\-*]",
+          "name": "keyword.operator.arithmetic.halalscript"
+        },
+        {
+          "match": "[=!:]",
+          "name": "invalid.illegal.operator.halalscript"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "match": "[{}]",
+          "name": "punctuation.section.block.halalscript"
+        },
+        {
+          "match": "[()]",
+          "name": "punctuation.section.parens.halalscript"
+        }
+      ]
+    },
+    "identifier": {
+      "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b",
+      "name": "variable.other.halalscript"
+    }
+  }
+}

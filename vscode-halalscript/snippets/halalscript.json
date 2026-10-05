@@ -1,0 +1,52 @@
+{
+  "Program": {
+    "prefix": ["assalamu", "program"],
+    "body": ["assalamu alaikum", "", "$0", "", "ameen ${1:0}"],
+    "description": "A whole program: the greeting, your statements, and ameen"
+  },
+  "Immutable declaration": {
+    "prefix": "bismillah",
+    "body": "bismillah ${1|dirham,dinar,fatwa|} ${2:name} := ${3:value}",
+    "description": "bismillah — an immutable variable"
+  },
+  "Mutable declaration": {
+    "prefix": "inshallah",
+    "body": "inshallah ${1|dirham,dinar,fatwa|} ${2:name} := ${3:value}",
+    "description": "inshallah — a mutable variable"
+  },
+  "Constant declaration": {
+    "prefix": "wallahi",
+    "body": "wallahi ${1|dirham,dinar,fatwa|} ${2:NAME} := ${3:value}",
+    "description": "wallahi — a compile-time constant"
+  },
+  "Istikhara (yalla)": {
+    "prefix": "istikhara",
+    "body": ["istikhara ${1:condition} yalla", "\t$0", "khalas"],
+    "description": "if, with a yalla … khalas block"
+  },
+  "Istikhara (braces)": {
+    "prefix": "istikhara{",
+    "body": ["istikhara ${1:condition} {", "\t$0", "}"],
+    "description": "if, with a { … } block"
+  },
+  "Istikhara / qadarallah (yalla)": {
+    "prefix": ["istikhara-qadarallah", "ifelse"],
+    "body": ["istikhara ${1:condition} yalla", "\t$2", "khalas", "qadarallah yalla", "\t$0", "khalas"],
+    "description": "if / else, with yalla … khalas blocks"
+  },
+  "Istikhara / qadarallah (braces)": {
+    "prefix": ["istikhara-qadarallah{", "ifelse{"],
+    "body": ["istikhara ${1:condition} {", "\t$2", "}", "qadarallah {", "\t$0", "}"],
+    "description": "if / else, with { … } blocks"
+  },
+  "Qadarallah (yalla)": {
+    "prefix": "qadarallah",
+    "body": ["qadarallah yalla", "\t$0", "khalas"],
+    "description": "else, with a yalla … khalas block"
+  },
+  "Qadarallah (braces)": {
+    "prefix": "qadarallah{",
+    "body": ["qadarallah {", "\t$0", "}"],
+    "description": "else, with a { … } block"
+  }
+}

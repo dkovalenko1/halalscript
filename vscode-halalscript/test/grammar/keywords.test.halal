@@ -1,0 +1,50 @@
+# SYNTAX TEST "source.halalscript" "HalalScript keywords, literals and operators"
+assalamu alaikum   # peace be upon you
+# <-------- keyword.other.greeting.halalscript
+#        ^^^^^^^ keyword.other.greeting.halalscript
+#                  ^ punctuation.definition.comment.halalscript
+#                    ^^^^^^^^^^^^^^^^^ comment.line.number-sign.halalscript
+
+wallahi dinar LIMIT := 3000000000
+# <------- storage.modifier.constant.halalscript
+#       ^^^^^ storage.type.halalscript
+#             ^^^^^ variable.other.constant.declaration.halalscript
+#                   ^^ keyword.operator.assignment.halalscript
+#                      ^^^^^^^^^^ constant.numeric.decimal.halalscript
+
+bismillah dirham x := ١٢
+# <--------- storage.modifier.halalscript
+#         ^^^^^^ storage.type.halalscript
+#                ^ variable.other.declaration.halalscript
+#                     ^^ constant.numeric.decimal.arabic.halalscript
+
+inshallah fatwa ok := la (x == LIMIT) != haram
+# <--------- storage.modifier.halalscript
+#               ^^ variable.other.declaration.halalscript
+#                     ^^ keyword.operator.logical.halalscript
+#                        ^ punctuation.section.parens.halalscript
+#                         ^ variable.other.halalscript
+#                           ^^ keyword.operator.comparison.halalscript
+#                                     ^^ keyword.operator.comparison.halalscript
+#                                        ^^^^^ constant.language.boolean.halalscript
+
+istikhara ok yalla
+# <--------- keyword.control.conditional.halalscript
+#            ^^^^^ keyword.control.block.halalscript
+    total := total * 2 - 1 + halal_money
+#   ^^^^^ variable.other.halalscript
+#                  ^ keyword.operator.arithmetic.halalscript
+#                      ^ keyword.operator.arithmetic.halalscript
+#                          ^ keyword.operator.arithmetic.halalscript
+#                            ^^^^^^^^^^^ variable.other.halalscript
+khalas
+# <------ keyword.control.block.halalscript
+qadarallah {
+# <---------- keyword.control.conditional.halalscript
+#          ^ punctuation.section.block.halalscript
+    ameen la_not_a_keyword
+#   ^^^^^ keyword.control.exit.halalscript
+#         ^^^^^^^^^^^^^^^^ variable.other.halalscript
+}
+x = 1
+# ^ invalid.illegal.operator.halalscript
