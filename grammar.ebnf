@@ -1,0 +1,67 @@
+(* HalalScript grammar, stage 1.
+
+   Notation: name ::= right side ; | separates alternatives; [ x ] is
+   optional; { x } is zero or more; quoted words are terminals spelled exactly
+   as in the source; IDENT, NUMBER and NL are lexical terminals defined below.
+
+   The lexer returns one token vector per source line. NL is the boundary
+   between two such vectors (or the end of the last one); it is not a stored
+   token. Blank lines and comment-only lines produce no vector at all, so
+   they may stand anywhere and never count as a statement. *)
+
+(* ---------- structure ---------- *)
+
+program     ::= greeting { statement } exit_stmt ;
+greeting    ::= "assalamu" "alaikum" NL ;
+
+statement   ::= declaration NL
+              | assignment NL
+              | if_stmt ;
+
+declaration ::= decl_kind type IDENT ":=" expr ;
+decl_kind   ::= "wallahi"                     (* compile-time constant *)
+              | "bismillah"                   (* immutable variable    *)
+              | "inshallah" ;                 (* mutable variable      *)
+type        ::= "dirham"                      (* i32  *)
+              | "dinar"                       (* i64  *)
+              | "fatwa" ;                     (* bool *)
+
+assignment  ::= IDENT ":=" expr ;
+
+if_stmt     ::= "istikhara" expr block [ "qadarallah" block ] ;
+
+(* A block is closed in the style it was opened in. *)
+block       ::= "yalla" NL block_body "khalas" NL
+              | "{"     NL block_body "}"      NL ;
+block_body  ::= statement { statement } [ exit_stmt ]
+              | exit_stmt ;                   (* never empty *)
+
+exit_stmt   ::= "ameen" expr NL ;
+
+(* ---------- expressions ---------- *)
+
+expr        ::= arith [ ( "==" | "!=" ) arith ] ;   (* at most one comparison *)
+arith       ::= term { ( "+" | "-" ) term } ;       (* left associative *)
+term        ::= unary { "*" unary } ;               (* left associative *)
+unary       ::= "la" unary | primary ;
+primary     ::= NUMBER
+              | "halal" | "haram"
+              | IDENT
+              | "(" expr ")" ;
+
+(* ---------- lexical ---------- *)
+
+IDENT        ::= letter { letter | digit } ;          (* not a reserved word *)
+NUMBER       ::= digit { digit }
+               | arabic_digit { arabic_digit } ;      (* value <= 9223372036854775807 *)
+letter       ::= "a" .. "z" | "A" .. "Z" | "_" ;
+digit        ::= "0" .. "9" ;
+arabic_digit ::= "٠" .. "٩" ;                         (* U+0660 .. U+0669, bytes D9 A0 .. D9 A9 *)
+NL           ::= ? the end of a line that holds at least one token ? ;
+comment      ::= "#" { ? any byte except a newline ? } ;   (* discarded by the lexer *)
+whitespace   ::= " " | ? tab ? | ? carriage return before a newline ? ;  (* discarded *)
+
+(* Reserved words: wallahi bismillah inshallah dirham dinar fatwa halal haram
+   istikhara qadarallah yalla khalas ameen la assalamu alaikum ma_dama.
+   ma_dama ("as long as", while) is reserved for a later stage and appears in
+   no rule yet. *)
