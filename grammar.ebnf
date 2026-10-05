@@ -59,7 +59,7 @@ digit        ::= "0" .. "9" ;
 arabic_digit ::= "٠" .. "٩" ;                         (* U+0660 .. U+0669, bytes D9 A0 .. D9 A9 *)
 NL           ::= ? the end of a line that holds at least one token ? ;
 comment      ::= "#" { ? any byte except a newline ? } ;   (* discarded by the lexer *)
-whitespace   ::= " " | ? tab ? | ? carriage return before a newline ? ;  (* discarded *)
+whitespace   ::= " " | ? tab ? | ? carriage return ? ;   (* discarded *)
 
 (* Reserved words: wallahi bismillah inshallah dirham dinar fatwa halal haram
    istikhara qadarallah yalla khalas ameen la assalamu alaikum ma_dama.
