@@ -14,7 +14,7 @@ Language support for [HalalScript](../README.md) files (`.halal`).
   `istikhara`, `istikhara{`, `istikhara-qadarallah`, `qadarallah` and the brace versions.
 - **Editor**: `#` comment toggling, `yalla`/`khalas` matched like brackets,
   indentation after `yalla` and `{`, auto-closing `(` and `{`.
-- **Commands**: *HalalScript: Convert digits to Eastern Arabic (٠-٩)* (`Ctrl+Cmd+A`
+- **Commands**: *HalalScript: Convert digits to Eastern Arabic* (`Ctrl+Cmd+A`
   on macOS, `Ctrl+Alt+A` elsewhere), *Convert digits to Western (0-9)*, and
   *Show the syntax tree* (the `--ast` dump beside the program).
 

@@ -11,14 +11,13 @@ irony**. The joke is the compiler's self-importance, never the faith.
 
 This is **stage 1** of the course project: the language design, a hand-written
 byte state-machine lexer, and a recursive-descent parser that builds an AST.
-The full design rationale is in [`DESIGN.md`](DESIGN.md); the grammar is in
-[`grammar.ebnf`](grammar.ebnf).
+The grammar is in [`grammar.ebnf`](grammar.ebnf).
 
 ```
 assalamu alaikum
 
 wallahi dinar LIMIT := 3000000000    # compile-time constant
-bismillah dirham x := ١٢             # immutable, Eastern Arabic digits
+bismillah dirham x := 12             # immutable
 inshallah dinar total := x * 2       # mutable
 bismillah fatwa ok := la (total == LIMIT)
 
@@ -89,7 +88,7 @@ what it covers.
 
 ### Program structure and the greeting
 
-*السلام عليكم, "peace be upon you".* Every program opens with
+*"Peace be upon you."* Every program opens with
 `assalamu alaikum` on its first line and ends with `ameen <value>`. One
 statement per line; blank lines and `#` comments may stand anywhere.
 
@@ -104,7 +103,7 @@ ameen 0
 
 ### `ameen` — the program's answer (exit)
 
-*آمين, "so be it", said at the end of a supplication.* `ameen <expr>` is the
+*"So be it", said at the end of a supplication.* `ameen <expr>` is the
 last statement of the program; it may also be the last statement of a block.
 
 > **Official Ruling.** Every program is a supplication and every supplication
@@ -123,7 +122,7 @@ ameen answer != halal
 
 #### `wallahi` — compile-time constant
 
-*والله, "by God, I swear" — the oath that settles a matter beyond dispute.*
+*"By God, I swear" — the oath that settles a matter beyond dispute.*
 
 > **Official Ruling.** A *wallahi* value is sworn before the program is born.
 > An oath is not taken on what one will discover later, so its initialiser may
@@ -133,7 +132,7 @@ ameen answer != halal
 
 #### `bismillah` — immutable variable
 
-*بسم الله, "in the name of God" — said at the beginning of an act.*
+*"In the name of God" — said at the beginning of an act.*
 
 > **Official Ruling.** Declaration is the act of naming, and there is no more
 > solemn naming than one opened with *bismillah*. The value may be computed at
@@ -141,7 +140,7 @@ ameen answer != halal
 
 #### `inshallah` — mutable variable
 
-*إن شاء الله, "if God wills" — said of any future that is not certain.*
+*"If God wills" — said of any future that is not certain.*
 
 > **Official Ruling.** A value declared *inshallah* is held only
 > provisionally. It shall remain what it is — if God wills. He may will
@@ -200,7 +199,7 @@ ameen a
 |----------|---------|
 | `+ - *` | arithmetic; `*` binds tighter, equal levels group left to right |
 | `==` `!=` | comparison; at most one per expression, weaker than arithmetic |
-| `la` | logical not (لا, "no"); binds tightest: `la a == b` is `(la a) == b` |
+| `la` | logical not (*la*, "no"); binds tightest: `la a == b` is `(la a) == b` |
 | `( )` | grouping |
 
 There is no unary minus (write `0 - x`), no `/`, no `<` or `>`.
@@ -268,15 +267,13 @@ ameen a
 
 ### Eastern Arabic numerals
 
-Integer literals may be written in `0-9` or in `٠١٢٣٤٥٦٧٨٩` (U+0660–U+0669),
-but one literal uses one script. The lexer reads them as two-byte sequences in
-its state machine; the AST shows both the value and the source spelling.
-
-```
-assalamu alaikum
-bismillah dirham year := ١٤٤٦
-ameen year + ٣
-```
+Integer literals may be written in Western digits `0-9` or in Eastern Arabic
+digits (U+0660 for zero to U+0669 for nine), but one literal uses one script.
+The lexer reads each Eastern Arabic digit as a two-byte UTF-8 sequence in its
+state machine; the AST shows both the value and the source spelling. The
+examples are in [`tests/ok/arabic_numerals.txt`](tests/ok/arabic_numerals.txt)
+(they are left out of this README because right-to-left digits garble the
+Markdown preview).
 
 ### Overflow — *riba*
 
@@ -289,6 +286,21 @@ does not fit a dirham, narrowing dinar → dirham, and overflow while folding
 ```
 compilation error: line 2:22: constant 9223372036854775808 exceeds even the dinar (i64) — this is riba, an increase beyond every permitted measure
 ```
+
+### Type rules and scopes (checked from stage 2)
+
+The parser accepts any well-formed expression; the semantic pass of stage 2
+will judge its types:
+
+- a literal is a dirham if it fits, otherwise a dinar;
+- `+ - *` take two integers and give the wider coin (dirham + dinar is dinar);
+- `==` and `!=` take two integers (any mix) or two fatwas and give a fatwa;
+- `la` and the condition of `istikhara` take a fatwa;
+- a dirham widens into a dinar implicitly; nothing else converts;
+- only an `inshallah` variable may be assigned; a `wallahi` initialiser may name
+  only literals and other `wallahi` constants;
+- a name is declared once per block and before its use; each block is a scope,
+  and an inner declaration may shadow an outer one with any type.
 
 ### Names and reserved words
 
@@ -308,7 +320,7 @@ flag and field:
 ```
 Program
   Decl x dirham bismillah (immutable)
-    Int 12 (١٢)
+    Int 12
   Istikhara
     BinOp ==
       Var x
@@ -324,23 +336,10 @@ Program
     Int 0
 ```
 
+A literal written in Eastern Arabic digits also shows its source spelling in
+parentheses after the value.
+
 Node classes (`src/ast_nodes.py`): `ASTNode` → `ProgramNode`, `BlockNode`,
 `StmtNode` (`DeclNode`, `AssignNode`, `IfNode`, `ExitNode`) and `ExprNode`
 (`BinOpNode`, `NotNode`, `IntLiteralNode`, `BoolLiteralNode`, `VarNode`). Every
 node keeps the line and column of the token it came from.
-
-## Repository layout
-
-```
-compiler.py          entry point: --ast, --tokens, or check only
-src/lexer.py         byte state machine → tokens grouped by line
-src/parser.py        recursive descent: peek / eat, one method per grammar rule
-src/ast_nodes.py     the node class hierarchy and the dump
-src/errors.py        CompileError with line:column
-grammar.ebnf         the complete grammar
-DESIGN.md            the language design and the full error catalogue
-tests/ok, tests/err  test programs with their expected output
-check.py             the test runner
-ai_usage.txt         AI usage disclosure
-vscode-halalscript/  the optional VS Code extension (not graded)
-```

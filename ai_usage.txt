@@ -86,11 +86,12 @@ Prompt 8:
 2. WHAT THE AI PRODUCED
 -----------------------
 
-- DESIGN.md: first a draft that offered several spellings for each keyword
-  (with emoji aliases, ornate brackets, and other options), then the final
-  version after my decisions in prompt 2. It holds the keyword explanations
-  ("Official Rulings"), lexical rules, grammar, AST shape, overflow ("riba")
-  plan for all three stages, and the error catalogue.
+- DESIGN.md, an intermediate design document: first a draft that offered
+  several spellings for each keyword (with emoji aliases, ornate brackets and
+  other options), then a revision after my decisions in prompt 2. Its content
+  went into README.md and grammar.ebnf, and I removed the file before
+  submission because its open questions and draft error wording were outdated
+  (it remains in the git history).
 - grammar.ebnf: written from the final design.
 - src/lexer.py: the byte state machine. Includes Eastern Arabic digits
   (two-byte UTF-8), the i64 literal limit, columns counted in characters,
