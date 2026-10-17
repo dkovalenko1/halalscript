@@ -1,0 +1,17 @@
+assalamu alaikum   # peace be upon you
+
+wallahi dinar LIMIT := 3000000000    # compile-time constant
+bismillah dirham x := ١٢             # immutable, Eastern Arabic digits
+inshallah dinar total := x * 2       # mutable
+bismillah fatwa ok := la (total == LIMIT)
+
+total := total + LIMIT
+
+istikhara ok yalla
+    total := total - 1
+khalas
+qadarallah {
+    total := 0
+khalas
+
+ameen total

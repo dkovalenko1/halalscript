@@ -1,0 +1,16 @@
+Program
+  Decl a dirham bismillah (immutable)
+    Int 1
+  Istikhara
+    BinOp ==
+      Var a
+      Int 1
+    Block yalla
+      Ameen
+        Int 100
+    Qadarallah
+      Block brace
+        Ameen
+          Int 200
+  Ameen
+    Int 0

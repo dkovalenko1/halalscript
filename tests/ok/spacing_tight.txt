@@ -1,0 +1,5 @@
+assalamu alaikum
+inshallah dirham a:=1+2*3
+a:=(a-1)*la_not_a_keyword
+bismillah fatwa f:=la(a!=1)
+ameen a

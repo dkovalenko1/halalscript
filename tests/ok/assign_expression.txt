@@ -1,0 +1,6 @@
+assalamu alaikum
+inshallah dirham a := 10
+inshallah dirham b := 2
+a := a * b - 1
+b := a + b * 3
+ameen b

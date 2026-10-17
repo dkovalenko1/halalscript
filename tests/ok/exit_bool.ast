@@ -1,0 +1,7 @@
+Program
+  Decl answer fatwa bismillah (immutable)
+    Bool haram
+  Ameen
+    BinOp !=
+      Var answer
+      Bool halal

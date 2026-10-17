@@ -1,0 +1,20 @@
+Program
+  Decl a dirham inshallah (mutable)
+    Int 10
+  Decl b fatwa bismillah (immutable)
+    Bool halal
+  Istikhara
+    Var b
+    Block brace
+      Assign a
+        BinOp +
+          Var a
+          Int 5
+    Qadarallah
+      Block brace
+        Assign a
+          BinOp -
+            Var a
+            Int 5
+  Ameen
+    Var a

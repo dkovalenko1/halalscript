@@ -1,0 +1,9 @@
+Program
+  Decl small dirham bismillah (immutable)
+    Int 7
+  Decl big dinar bismillah (immutable)
+    Int 3000000000
+  Decl ruling fatwa bismillah (immutable)
+    Bool halal
+  Ameen
+    Var small

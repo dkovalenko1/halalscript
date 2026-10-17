@@ -1,0 +1,1 @@
+compilation error: line 2:20: expected ':=' after 'x', got '{' — a declaration is completed by ':=' and a value

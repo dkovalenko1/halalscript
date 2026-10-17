@@ -1,0 +1,23 @@
+Program
+  Decl a fatwa bismillah (immutable)
+    Bool haram
+  Decl b fatwa bismillah (immutable)
+    Not
+      Var a
+  Decl c fatwa bismillah (immutable)
+    Not
+      Not
+        Var b
+  Decl d fatwa bismillah (immutable)
+    BinOp ==
+      Not
+        Var a
+      Var b
+  Decl e fatwa bismillah (immutable)
+    Not
+      BinOp ==
+        Var a
+        Var b
+  Ameen
+    Not
+      Var e

@@ -1,0 +1,7 @@
+assalamu alaikum
+bismillah fatwa a := haram
+bismillah fatwa b := la a
+bismillah fatwa c := la la b
+bismillah fatwa d := la a == b
+bismillah fatwa e := la (a == b)
+ameen la e

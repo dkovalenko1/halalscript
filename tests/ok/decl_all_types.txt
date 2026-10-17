@@ -1,0 +1,5 @@
+assalamu alaikum
+bismillah dirham small := 7
+bismillah dinar big := 3000000000
+bismillah fatwa ruling := halal
+ameen small

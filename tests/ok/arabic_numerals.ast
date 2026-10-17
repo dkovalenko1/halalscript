@@ -1,0 +1,13 @@
+Program
+  Decl year dirham bismillah (immutable)
+    Int 1446 (١٤٤٦)
+  Decl zero dirham bismillah (immutable)
+    Int 0 (٠)
+  Decl mixed dinar inshallah (mutable)
+    BinOp +
+      Var year
+      BinOp *
+        Int 2025
+        Int 3 (٣)
+  Ameen
+    Var mixed

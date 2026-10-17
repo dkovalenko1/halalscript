@@ -1,0 +1,18 @@
+Program
+  Decl r dirham inshallah (mutable)
+    Int 0
+  Decl n dinar bismillah (immutable)
+    Int 3
+  Istikhara
+    BinOp ==
+      Var n
+      Int 3
+    Block yalla
+      Assign r
+        Int 1
+    Qadarallah
+      Block yalla
+        Assign r
+          Int 2
+  Ameen
+    Var r

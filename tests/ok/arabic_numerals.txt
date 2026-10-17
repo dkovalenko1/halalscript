@@ -1,0 +1,5 @@
+assalamu alaikum
+bismillah dirham year := ١٤٤٦
+bismillah dirham zero := ٠
+inshallah dinar mixed := year + 2025 * ٣
+ameen mixed

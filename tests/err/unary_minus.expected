@@ -1,0 +1,1 @@
+compilation error: line 2:23: '-' cannot stand before a value — there is no unary minus; write 0 - x, as the ancients did

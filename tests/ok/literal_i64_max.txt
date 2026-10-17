@@ -1,0 +1,4 @@
+assalamu alaikum
+bismillah dinar richest := 9223372036854775807
+bismillah dinar padded := 007
+ameen richest

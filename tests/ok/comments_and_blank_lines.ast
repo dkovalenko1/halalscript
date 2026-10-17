@@ -1,0 +1,14 @@
+Program
+  Decl x dirham bismillah (immutable)
+    Int 1
+  Decl y dirham inshallah (mutable)
+    Var x
+  Istikhara
+    BinOp ==
+      Var x
+      Var y
+    Block yalla
+      Assign y
+        Int 2
+  Ameen
+    Var y

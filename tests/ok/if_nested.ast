@@ -1,0 +1,19 @@
+Program
+  Decl x dirham inshallah (mutable)
+    Int 10
+  Istikhara
+    Bool halal
+    Block yalla
+      Decl x fatwa inshallah (mutable)
+        Bool halal
+      Istikhara
+        Var x
+        Block yalla
+          Decl x dinar inshallah (mutable)
+            Int 20
+          Ameen
+            Var x
+      Ameen
+        Var x
+  Ameen
+    Var x

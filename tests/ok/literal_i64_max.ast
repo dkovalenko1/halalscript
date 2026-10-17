@@ -1,0 +1,7 @@
+Program
+  Decl richest dinar bismillah (immutable)
+    Int 9223372036854775807
+  Decl padded dinar bismillah (immutable)
+    Int 7 (007)
+  Ameen
+    Var richest

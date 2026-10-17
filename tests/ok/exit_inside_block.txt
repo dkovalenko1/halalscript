@@ -1,0 +1,9 @@
+assalamu alaikum
+bismillah dirham a := 1
+istikhara a == 1 yalla
+    ameen 100
+khalas
+qadarallah {
+    ameen 200
+}
+ameen 0

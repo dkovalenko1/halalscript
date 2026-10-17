@@ -1,0 +1,14 @@
+Program
+  Decl charity dirham inshallah (mutable)
+    Int 0
+  Decl generous fatwa bismillah (immutable)
+    Bool halal
+  Istikhara
+    Var generous
+    Block yalla
+      Assign charity
+        BinOp +
+          Var charity
+          Int 10
+  Ameen
+    Var charity

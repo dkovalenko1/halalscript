@@ -1,0 +1,143 @@
+{
+  "name": "halalscript",
+  "displayName": "HalalScript",
+  "description": "Language support for HalalScript: highlighting, snippets, keyword rulings on hover, completion, live compiler verdicts and Eastern Arabic digits.",
+  "version": "0.1.0",
+  "publisher": "dkovalenko1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dkovalenko1/halalscript.git"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In Restricted Mode the compiler always runs from the halalscript.pythonPath and halalscript.compilerPath of your user settings; a workspace cannot change which program runs.",
+      "restrictedConfigurations": [
+        "halalscript.pythonPath",
+        "halalscript.compilerPath"
+      ]
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "halalscript",
+        "aliases": [
+          "HalalScript",
+          "halalscript"
+        ],
+        "extensions": [
+          ".halal"
+        ],
+        "firstLine": "^\\s*assalamu\\s+alaikum\\b",
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "halalscript",
+        "scopeName": "source.halalscript",
+        "path": "./syntaxes/halalscript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "halalscript",
+        "path": "./snippets/halalscript.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "halalscript.toArabicDigits",
+        "title": "Convert digits to Eastern Arabic (٠-٩)",
+        "category": "HalalScript"
+      },
+      {
+        "command": "halalscript.toWesternDigits",
+        "title": "Convert digits to Western (0-9)",
+        "category": "HalalScript"
+      },
+      {
+        "command": "halalscript.showAst",
+        "title": "Show the syntax tree",
+        "category": "HalalScript"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "halalscript.toArabicDigits",
+          "when": "editorLangId == halalscript"
+        },
+        {
+          "command": "halalscript.toWesternDigits",
+          "when": "editorLangId == halalscript"
+        },
+        {
+          "command": "halalscript.showAst",
+          "when": "editorLangId == halalscript"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "halalscript.toArabicDigits",
+        "key": "ctrl+alt+a",
+        "mac": "ctrl+cmd+a",
+        "when": "editorTextFocus && editorLangId == halalscript"
+      }
+    ],
+    "configuration": {
+      "title": "HalalScript",
+      "properties": {
+        "halalscript.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "The Python 3.10+ interpreter that runs the HalalScript compiler."
+        },
+        "halalscript.compilerPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a HalalScript compiler.py. Empty: use the compiler bundled with the extension."
+        },
+        "halalscript.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the compiler while you type and underline the error it reports."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "bundle-compiler": "node scripts/bundle-compiler.js",
+    "compile": "npm run bundle-compiler && tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test:grammar": "vscode-tmgrammar-test \"test/grammar/*.test.halal\"",
+    "test:integration": "npm run compile && node ./out/test/runTest.js",
+    "test": "npm run test:grammar && npm run test:integration",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package --allow-missing-repository",
+    "screenshots": "npm run compile && node ./out/screenshots/runScreenshots.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.90.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "mocha": "^11.0.0",
+    "typescript": "~5.9.0",
+    "vscode-tmgrammar-test": "^0.1.3"
+  }
+}
