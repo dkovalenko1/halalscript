@@ -259,4 +259,6 @@ write is a gep, a load, an add and a store.
 5. WHAT I UNDERSTOOD (in my own words)
 --------------------------------------
 
-[To be written by me before submission.]
+Compiler works in stages. Lexer produces tokens, parser builds an ast, and the semantic checker resolves names , check types, function args and mutability before llvm codegen.
+Func signatures are collected first, so we can support recursion and forward calls. Member funcs recieve a hidden pointer to their own object, so they can update its fields.
+The extension uses the compiler to report errors in the editor. We handle highlights, func signatures on hover and field/method completion after a dot. Run command (button in UI) compiles the program to llvm IR and executes it in therminal, where user can provide inputs if prompted.
