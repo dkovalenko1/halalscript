@@ -1,0 +1,124 @@
+AI USAGE DISCLOSURE: HalalScript, Project Stage 2
+=================================================
+
+Tool: Claude Code (model Claude Opus 5.5), run through the T3 Code desktop app,
+with access to my local folder containing the course PDFs (practices 1 to 7,
+the stage 1 and stage 2 tasks), my practice repository
+languages-and-compilers-design, and this repository. It also used a browser
+tab of the T3 Code app to open the course Moodle page after I logged in there
+myself.
+
+Transcript: the whole stage was done in one Claude Code session on
+2026-10-27. The session has no public link, so the prompts are reproduced
+verbatim below.
+
+The AI wrote the code, the tests and most of the text in this stage. I made
+the design decisions listed in section 3.
+
+
+1. PROMPTS (verbatim, in order)
+-------------------------------
+
+Prompt 1:
+
+  Here is the main Moodle page for my uni: https://teaching.kse.org.ua/my/
+  Please check this course page and pull the assignment due today. Explain
+  what should we do.
+
+Prompt 2 (after logging in to Moodle myself in the app's browser tab):
+
+  logged in
+
+Prompt 3:
+
+  stage1 is merged into main. Before we start, check the practice files in
+  [practice-files](practice-files) and the course repo with the
+  implementations in [languages-and-compilers-design]
+  (languages-and-compilers-design) for the context. For task 1 we need to
+  define our own syntax for our new functionality, right? What is your
+  proposition for it that will mach our language design?
+
+Prompt 4:
+
+  1. `halal`/`haram` surely, with a compact description in the README that it
+     is actually true/false that was required.
+  2. Seeing `wallahi` constants follow the architecture we implemented in the
+     course repo, right? If so, we keep that.
+  3. Point(...) is the right call.
+  You can create a branch and commit your work when you finish a chunk. One
+  small note: you should omit the CLAUDE.md rule for using the writing skill
+  for the README in order to keep the voice of the file that is already
+  settled. Every other file that does not require that type of writing should
+  still follow the rules.
+
+
+2. WHAT THE AI PRODUCED, PART BY PART
+-------------------------------------
+
+Reading the task. The AI opened the Moodle calendar, found the assignment due
+on 27 October, downloaded w07-project-stage2.pdf and summarised its four
+tasks, the grading and the submission steps.
+
+Task 1, language design. The AI proposed the syntax after reading practices 6
+and 7, the Practice 7 grammar of my course repository, and the stage 1
+DESIGN.md: `dua` for functions, `diwan` for structures, fields declared with
+`bismillah` or `inshallah`, `ameen` as the return inside a dua, `Point(3, 4)`
+to create an object, `sual()` to read and `bayan(...)` to print. It avoided
+words tied to acts of worship (iqra, adhan, khutba) for read and print, as the
+stage 1 design rules require. It also wrote the grammar.ebnf changes and the
+README sections. Taken as proposed, except for the decisions in section 3.
+
+Task 2, front end. src/lexer.py gained the four keywords, ',' and '.', and
+string literals checked as UTF-8. src/parser.py gained one method per new rule
+(diwan, field, dua, postfix chain, arguments, bayan) and the fixed program
+order. src/ast_nodes.py gained the new node classes and their --ast labels.
+Taken as generated.
+
+Task 3, semantic analysis and code generation. src/semantic.py is new: the
+symbol tables for variables, duas and diwans, every stage 1 rule from
+DESIGN.md (which stage 1 had only designed), and the stage 2 rules, including
+the mutation fixed point. src/codegen.py is new: the module through llvmlite's
+IRBuilder, with runtime overflow checks through the llvm.s*.with.overflow
+intrinsics. Both follow the structure of the SemanticChecker and CodeGen
+classes of my languages-and-compilers-design repository (practices 6 and 7).
+compiler.py now writes output.ll. Taken as generated.
+
+Task 4, tests. 14 new valid programs, each run end to end, and 60 new invalid
+programs, plus check.py rewritten to compile, run under lli with NAME.in as
+input, and compare the output. The AI recorded the outputs and error lines by
+running the compiler, then read each one and checked it against the program
+before keeping it. Two stage 1 files changed: tests/ok/spacing_tight.txt used
+an undeclared name, which the new semantic pass rightly rejects, so a
+declaration was added; tests/err/decl_missing_type.expected now also lists "or
+a diwan" among the types. Taken as generated.
+
+Extra. examples/treasury.halal, a stage 2 example program.
+
+
+3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
+-------------------------------------------------------------
+
+- Fatwas print as `halal` and `haram`, not `true` and `false`, and the README
+  says in a short note that the task asked for true and false.
+- What a dua body sees follows my course repository: no top-level variables at
+  all. The AI had proposed that a dua could see the top-level `wallahi`
+  constants; it checked my practice repository, found that a function there
+  never sees top-level names, and dropped the idea.
+- Objects are created as `Point(...)`. The AI had also offered `{3, 4}`.
+- The README keeps the voice it had in stage 1.
+
+
+4. HOW THE RESULT WAS CHECKED
+-----------------------------
+
+check.py passes all 134 rows: 33 valid programs run end to end under lli,
+98 invalid programs give their exact error line, and the 3 examples compile
+and run. Every program in the README was compiled and run. The IR of a member
+dua was read to confirm that its first parameter is a pointer and that a field
+write is a gep, a load, an add and a store.
+
+
+5. WHAT I UNDERSTOOD (in my own words)
+--------------------------------------
+
+[To be written by me before submission.]
