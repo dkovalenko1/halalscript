@@ -1,4 +1,4 @@
-(* HalalScript grammar, stage 1.
+(* HalalScript grammar, stage 2.
 
    Notation: name ::= right side ; | separates alternatives; [ x ] is
    optional; { x } is zero or more; quoted words are terminals spelled exactly
@@ -11,12 +11,15 @@
 
 (* ---------- structure ---------- *)
 
-program     ::= greeting { statement } exit_stmt ;
+(* Diwans come first, then duas, then statements: a diwan after a dua or a
+   statement, or a dua after a statement, is an error at its keyword. *)
+program     ::= greeting { diwan } { dua } { statement } exit_stmt ;
 greeting    ::= "assalamu" "alaikum" NL ;
 
 statement   ::= declaration NL
               | assignment NL
-              | if_stmt ;
+              | if_stmt
+              | print NL ;
 
 declaration ::= decl_kind type IDENT ":=" expr ;
 decl_kind   ::= "wallahi"                     (* compile-time constant *)
@@ -24,9 +27,11 @@ decl_kind   ::= "wallahi"                     (* compile-time constant *)
               | "inshallah" ;                 (* mutable variable      *)
 type        ::= "dirham"                      (* i32  *)
               | "dinar"                       (* i64  *)
-              | "fatwa" ;                     (* bool *)
+              | "fatwa"                       (* bool *)
+              | IDENT ;                       (* a diwan declared above *)
 
-assignment  ::= IDENT ":=" expr ;
+(* Every link of the target must be mutable; the semantic pass checks it. *)
+assignment  ::= IDENT { "." IDENT } ":=" expr ;
 
 if_stmt     ::= "istikhara" expr block [ "qadarallah" block ] ;
 
@@ -36,7 +41,25 @@ block       ::= "yalla" NL block_body "khalas" NL
 block_body  ::= statement { statement } [ exit_stmt ]
               | exit_stmt ;                   (* never empty *)
 
+(* At the top level ameen ends the program; inside a dua it returns. *)
 exit_stmt   ::= "ameen" expr NL ;
+
+(* bayan prints its argument and a newline. A string literal stands only here. *)
+print       ::= "bayan" "(" ( STRING | expr ) ")" ;
+
+(* ---------- diwans (structures) and duas (functions) ---------- *)
+
+(* Fields first, then member duas; at least one field. A diwan is closed in
+   the style it was opened in, like a block. *)
+diwan       ::= "diwan" IDENT ( "yalla" NL diwan_body "khalas"
+                              | "{"     NL diwan_body "}" ) NL ;
+diwan_body  ::= field { field } { dua } ;
+field       ::= ( "bismillah" | "inshallah" ) type IDENT NL ;   (* constant | mutable *)
+
+(* The body block ends with exit_stmt, whose value is the result. A member
+   dua is a dua inside a diwan. *)
+dua         ::= "dua" type IDENT "(" [ param { "," param } ] ")" block ;
+param       ::= type IDENT ;
 
 (* ---------- expressions ---------- *)
 
@@ -46,8 +69,15 @@ term        ::= unary { "*" unary } ;               (* left associative *)
 unary       ::= "la" unary | primary ;
 primary     ::= NUMBER
               | "halal" | "haram"
-              | IDENT
+              | postfix
               | "(" expr ")" ;
+
+(* IDENT arguments is a new object when IDENT names a diwan (Point(3, 4)),
+   otherwise a call of a dua. A call ends the chain: no "." follows its ")". *)
+postfix     ::= IDENT arguments
+              | "sual" "(" ")"                               (* reads one dirham *)
+              | IDENT { "." IDENT } [ "." IDENT arguments ] ;  (* field chain, member call *)
+arguments   ::= "(" [ expr { "," expr } ] ")" ;
 
 (* ---------- lexical ---------- *)
 
@@ -57,11 +87,14 @@ NUMBER       ::= digit { digit }
 letter       ::= "a" .. "z" | "A" .. "Z" | "_" ;
 digit        ::= "0" .. "9" ;
 arabic_digit ::= "٠" .. "٩" ;                         (* U+0660 .. U+0669, bytes D9 A0 .. D9 A9 *)
+STRING       ::= '"' { ? any UTF-8 character except '"' and a newline ? } '"' ;
+                                                      (* no escape sequences *)
 NL           ::= ? the end of a line that holds at least one token ? ;
 comment      ::= "#" { ? any byte except a newline ? } ;   (* discarded by the lexer *)
 whitespace   ::= " " | ? tab ? | ? carriage return ? ;   (* discarded *)
 
 (* Reserved words: wallahi bismillah inshallah dirham dinar fatwa halal haram
-   istikhara qadarallah yalla khalas ameen la assalamu alaikum ma_dama.
+   istikhara qadarallah yalla khalas ameen la assalamu alaikum ma_dama
+   diwan dua sual bayan.
    ma_dama ("as long as", while) is reserved for a later stage and appears in
    no rule yet. *)

@@ -5,16 +5,22 @@ token cursor (peek / eat) walks the current line, where peek() returning None
 means the end of the line (NL in the grammar). A statement is one line, except
 istikhara, which also consumes the lines of its blocks. One method per grammar
 rule; one token of look-ahead decides every choice.
+
+Diwans come first in a program, so when the parser meets Name( it already
+knows whether Name is a diwan (a new object) or a dua (a call).
 """
 
 from .ast_nodes import (
-    AssignNode, BinOpNode, BlockNode, BoolLiteralNode, DeclNode, ExitNode, ExprNode,
-    IfNode, IntLiteralNode, NotNode, ProgramNode, StmtNode, VarNode,
+    AssignNode, BinOpNode, BlockNode, BoolLiteralNode, CallNode, DeclNode, DiwanNode, DuaNode,
+    ExitNode, ExprNode, FieldAccessNode, FieldDeclNode, IfNode, IntLiteralNode, MemberCallNode,
+    NewNode, NotNode, ParamNode, PrintNode, ProgramNode, ReadNode, StmtNode, StringNode, VarNode,
+    chain,
 )
 from .errors import CompileError
 from .lexer import KEYWORDS, Token
 
 DECL_KINDS = ("wallahi", "bismillah", "inshallah")
+FIELD_KINDS = ("bismillah", "inshallah")
 TYPES = ("dirham", "dinar", "fatwa")
 OPENERS = {"yalla": "khalas", "{": "}"}  # opener -> the closer that answers it
 CLOSERS = {"khalas": "yalla", "}": "{"}
@@ -30,6 +36,7 @@ class Parser:
         self.line_index = 0
         self.tokens: list[Token] = []
         self.index = 0
+        self.diwans: set[str] = set()  # the names of the diwans declared so far
 
     # ---------- cursors ----------
 
@@ -81,9 +88,14 @@ class Parser:
 
     # ---------- structure ----------
 
-    def parse_program(self) -> ProgramNode:  # program ::= greeting { statement } exit_stmt
+    def parse_program(self) -> ProgramNode:
+        """program ::= greeting { diwan } { dua } { statement } exit_stmt"""
         greeting = self.parse_greeting()
-        statements = []
+        diwans, duas, statements = [], [], []
+        while (tokens := self.peek_line()) is not None and tokens[0].kind == "diwan":
+            diwans.append(self.parse_diwan())
+        while (tokens := self.peek_line()) is not None and tokens[0].kind == "dua":
+            duas.append(self.parse_dua(None))
         while (tokens := self.peek_line()) is not None and tokens[0].kind != "ameen":
             statements.append(self.parse_statement())
         if tokens is None:
@@ -93,7 +105,7 @@ class Parser:
         exit_node = self.parse_exit()
         if (tokens := self.peek_line()) is not None:
             raise self.after_exit(tokens[0])
-        return ProgramNode(greeting.line, greeting.column, statements, exit_node)
+        return ProgramNode(greeting.line, greeting.column, statements, exit_node, diwans, duas)
 
     def parse_greeting(self) -> Token:  # greeting ::= "assalamu" "alaikum" NL
         if self.peek_line() is None:
@@ -111,14 +123,19 @@ class Parser:
         self.finish_line("the greeting")
         return first
 
-    def parse_statement(self) -> StmtNode:  # statement ::= declaration NL | assignment NL | if_stmt
-        """Consume one line, or for istikhara every line up to the end of its last block."""
+    def parse_statement(self) -> StmtNode:
+        """statement ::= declaration NL | assignment NL | if_stmt | print NL
+
+        Consume one line, or for istikhara every line up to the end of its last block.
+        """
         token = self.next_line()[0]
         kind = token.kind
         if kind == "istikhara":
             return self.parse_if()
         if kind in DECL_KINDS:
             statement = self.parse_declaration()
+        elif kind == "bayan":
+            statement = self.parse_print()
         elif kind == "ident":
             statement = self.parse_assignment()
         else:
@@ -135,8 +152,14 @@ class Parser:
             message = (f"'{kind}' without a matching '{CLOSERS[kind]}' — one cannot finish what "
                        "was never started")
         elif kind in OPENERS:
-            message = (f"'{kind}' may only open the block of 'istikhara' or 'qadarallah', at the "
-                       "end of its line — a journey needs a reason to begin")
+            message = (f"'{kind}' may only open the block of 'istikhara', 'qadarallah', 'dua' or "
+                       "'diwan', at the end of its line — a journey needs a reason to begin")
+        elif kind == "diwan":
+            message = ("a 'diwan' is declared at the top of the program, before every dua and "
+                       "statement — the registers are drawn up before the business begins")
+        elif kind == "dua":
+            message = ("a 'dua' is declared at the top level, after the diwans and before the "
+                       "first statement — supplications are prepared before the work begins")
         elif kind in TYPES:
             message = (f"a declaration begins with 'wallahi', 'bismillah' or 'inshallah', not with "
                        f"'{kind}' — state the degree of certainty before the coin")
@@ -152,14 +175,13 @@ class Parser:
     def parse_declaration(self) -> DeclNode:  # declaration ::= decl_kind type IDENT ":=" expr
         kind = self.eat().kind
         type_token = self.peek()
-        if type_token is None or type_token.kind not in TYPES:
-            if type_token is not None and type_token.kind == "ident":
-                raise self.error(f"'{type_token.text}' is declared without a type — even the "
-                                 "faithful must state what they are: dirham, dinar or fatwa")
-            got = f"got '{type_token.text}'" if type_token else "found end of line"
-            raise self.error(f"expected a type after '{kind}' (dirham, dinar or fatwa), {got}")
-        self.eat()
-        name = self.expect_name(type_token.kind)
+        following = self.tokens[self.index + 1] if self.index + 1 < len(self.tokens) else None
+        if (type_token is not None and type_token.kind == "ident"
+                and (following is None or following.kind == ":=")):
+            raise self.error(f"'{type_token.text}' is declared without a type — even the "
+                             "faithful must state what they are: dirham, dinar, fatwa or a diwan")
+        type_name = self.parse_type(kind)
+        name = self.expect_name(type_name)
         token = self.peek()
         if token is None:
             raise self.error(f"'{name.text}' is declared without ':=' and a value — "
@@ -171,7 +193,14 @@ class Parser:
         if self.peek() is None:
             raise self.error(f"expected a value after ':=' for '{name.text}' — " + EMPTY_INVOCATION)
         init = self.parse_expr()
-        return DeclNode(name.line, name.column, name.text, kind, type_token.kind, init)
+        return DeclNode(name.line, name.column, name.text, kind, type_name, init)
+
+    def parse_type(self, after: str) -> str:  # type ::= "dirham" | "dinar" | "fatwa" | IDENT
+        token = self.peek()
+        if token is not None and (token.kind in TYPES or token.kind == "ident"):
+            return self.eat().text
+        got = f"got '{token.text}'" if token else "found end of line"
+        raise self.error(f"expected a type after '{after}' (dirham, dinar, fatwa or a diwan), {got}")
 
     def expect_name(self, after: str) -> Token:
         token = self.peek()
@@ -184,15 +213,144 @@ class Parser:
         raise self.error(f"expected a name after '{after}', {got} — a coin minted without a name "
                          "belongs to no one")
 
-    def parse_assignment(self) -> AssignNode:  # assignment ::= IDENT ":=" expr
+    def parse_assignment(self) -> AssignNode:  # assignment ::= IDENT { "." IDENT } ":=" expr
         name = self.eat()
+        target: ExprNode = VarNode(name.line, name.column, name.text)
+        while self.peek_kind() == ".":
+            self.eat()
+            line, column, field_name = self.expect_member_name()
+            target = FieldAccessNode(line, column, target, field_name)
+        if self.peek_kind() == "(":
+            raise self.error("a call cannot stand alone as a statement — its answer would fall "
+                             "unheard; keep it with bismillah", name)
         token = self.peek()
         if token is None or token.kind != ":=":
             got = f"got '{token.text}'" if token else "found end of line"
-            raise self.error(f"expected ':=' after '{name.text}', {got} — a name alone is a "
+            raise self.error(f"expected ':=' after '{chain(target)}', {got} — a name alone is a "
                              "summons without a purpose")
         self.eat()
-        return AssignNode(name.line, name.column, name.text, self.parse_expr())
+        return AssignNode(name.line, name.column, chain(target), self.parse_expr(), target)
+
+    def expect_member_name(self) -> tuple[int, int, str]:
+        token = self.peek()
+        if token is None or token.kind != "ident":
+            got = f"got '{token.text}'" if token else "found end of line"
+            raise self.error(f"expected a field or a member dua after '.', {got} — a register is "
+                             "consulted by the name of an entry")
+        self.eat()
+        return token.line, token.column, token.text
+
+    def parse_print(self) -> PrintNode:  # print ::= "bayan" "(" ( STRING | expr ) ")"
+        keyword = self.eat()
+        if self.peek_kind() != "(":
+            raise self.error("expected '(' after 'bayan' — a proclamation is made as bayan(value)")
+        opener = self.eat()
+        if self.peek_kind() == ")":
+            raise self.error("'bayan' requires something to proclaim — an empty proclamation "
+                             "wastes the herald's breath")
+        if self.peek_kind() == "string":
+            token = self.eat()
+            value = StringNode(token.line, token.column, token.value)
+        else:
+            value = self.parse_expr()
+        if self.peek_kind() == ",":
+            raise self.error("'bayan' proclaims one value at a time — the herald has one voice")
+        self.expect_close(opener)
+        return PrintNode(keyword.line, keyword.column, value)
+
+    def expect_close(self, opener: Token):
+        if self.peek_kind() != ")":
+            got = f", got '{self.peek().text}'" if self.peek() else ", found end of line"
+            raise self.error(f"expected ')' to close '(' at {opener.line}:{opener.column}{got} "
+                             "— a parenthesis opened is a vow, and vows are kept")
+        self.eat()
+
+    # ---------- diwans and duas ----------
+
+    def parse_diwan(self) -> DiwanNode:
+        """diwan ::= "diwan" IDENT opener NL field { field } { dua } closer NL"""
+        self.next_line()
+        self.eat()
+        name = self.expect_name("diwan")
+        self.diwans.add(name.text)  # a member dua may create an object of its own diwan
+        opener = self.peek()
+        if opener is None or opener.kind not in OPENERS:
+            got = f", got '{opener.text}'" if opener else ""
+            raise self.error(f"expected 'yalla' or '{{' after the name of diwan '{name.text}'{got} "
+                             "— a register is opened before it is filled")
+        self.eat()
+        self.finish_line(f"'{opener.text}'")
+        closer = OPENERS[opener.kind]
+        fields: list[FieldDeclNode] = []
+        duas: list[DuaNode] = []
+        while True:
+            tokens = self.peek_line()
+            if tokens is None:
+                raise self.error(f"'{opener.text}' is never answered by '{closer}' — a journey "
+                                 "begun was not concluded", opener)
+            first = tokens[0]
+            if first.kind in CLOSERS:
+                self.close_block(opener, first)
+                break
+            if first.kind == "dua":
+                if not fields:
+                    raise self.error(f"a member dua cannot precede the first field of '{name.text}' "
+                                     "— the register lists its entries before its duties", first)
+                duas.append(self.parse_dua(name.text))
+            elif first.kind in FIELD_KINDS:
+                if duas:
+                    raise self.error(f"a field of '{name.text}' follows its member duas — the "
+                                     "entries of a register are written before its duties", first)
+                self.next_line()
+                fields.append(self.parse_field())
+            elif first.kind == "wallahi":
+                raise self.error("a field cannot be sworn with 'wallahi' — its value is known only "
+                                 "when the object is created; use bismillah or inshallah", first)
+            else:
+                raise self.error(f"a diwan holds fields (bismillah or inshallah) and member duas, "
+                                 f"not '{first.text}' — the register records, it does not act",
+                                 first)
+        if not fields:
+            raise self.error(f"diwan '{name.text}' has no field — an empty register records "
+                             "nothing", opener)
+        delimiter = "yalla" if opener.kind == "yalla" else "brace"
+        return DiwanNode(name.line, name.column, name.text, delimiter, fields, duas)
+
+    def parse_field(self) -> FieldDeclNode:  # field ::= ( "bismillah" | "inshallah" ) type IDENT NL
+        kind = self.eat().kind
+        type_name = self.parse_type(kind)
+        name = self.expect_name(type_name)
+        if self.peek_kind() == ":=":
+            raise self.error(f"field '{name.text}' takes no value in its diwan — it receives one "
+                             "when the object is created")
+        self.finish_line("the field")
+        return FieldDeclNode(name.line, name.column, name.text, kind, type_name)
+
+    def parse_dua(self, owner: str | None) -> DuaNode:
+        """dua ::= "dua" type IDENT "(" [ param { "," param } ] ")" block   (ends with ameen)"""
+        self.next_line()
+        self.eat()
+        result_type = self.parse_type("dua")
+        name = self.expect_name(result_type)
+        if self.peek_kind() != "(":
+            raise self.error(f"expected '(' after the name of dua '{name.text}' — a supplication "
+                             "lists what it is given, even if it is nothing")
+        opener = self.eat()
+        params: list[ParamNode] = []
+        while self.peek_kind() != ")":
+            if params:
+                if self.peek_kind() != ",":
+                    self.expect_close(opener)
+                self.eat()
+            type_name = self.parse_type("(" if not params else ",")
+            param = self.expect_name(type_name)
+            params.append(ParamNode(param.line, param.column, param.text, type_name))
+        self.eat()
+        body = self.parse_block(f"dua {name.text}")
+        if body.exit is None:
+            raise self.error(f"dua '{name.text}' does not end with 'ameen' — a supplication must "
+                             "name its answer", name)
+        return DuaNode(name.line, name.column, name.text, result_type, params, body, owner)
 
     def parse_if(self) -> IfNode:  # if_stmt ::= "istikhara" expr block [ "qadarallah" block ]
         keyword = self.eat()
@@ -233,13 +391,7 @@ class Parser:
                                  "begun was not concluded", opener)
             first = tokens[0]
             if first.kind in CLOSERS:
-                if first.kind != closer:
-                    raise self.error(f"'{opener.text}' at {opener.line}:{opener.column} must be "
-                                     f"closed by '{closer}', not '{first.text}' — a covenant is "
-                                     "closed in the tongue in which it was opened", first)
-                self.next_line()
-                self.eat()
-                self.finish_line(f"'{first.text}'")
+                self.close_block(opener, first)
                 break
             if exit_node is not None:
                 raise self.after_exit(first)
@@ -253,6 +405,17 @@ class Parser:
                              opener)
         delimiter = "yalla" if opener.kind == "yalla" else "brace"
         return BlockNode(opener.line, opener.column, delimiter, statements, exit_node)
+
+    def close_block(self, opener: Token, first: Token):
+        """Consume the closer line; the closer must be the partner of the opener."""
+        closer = OPENERS[opener.kind]
+        if first.kind != closer:
+            raise self.error(f"'{opener.text}' at {opener.line}:{opener.column} must be "
+                             f"closed by '{closer}', not '{first.text}' — a covenant is "
+                             "closed in the tongue in which it was opened", first)
+        self.next_line()
+        self.eat()
+        self.finish_line(f"'{first.text}'")
 
     def parse_exit(self) -> ExitNode:  # exit_stmt ::= "ameen" expr NL
         keyword = self.eat()
@@ -302,7 +465,7 @@ class Parser:
         return self.parse_primary()
 
     def parse_primary(self) -> ExprNode:
-        """primary ::= NUMBER | "halal" | "haram" | IDENT | "(" expr ")" """
+        """primary ::= NUMBER | "halal" | "haram" | postfix | "(" expr ")" """
         token = self.peek()
         if token is None:
             raise self.error("expected a value, found end of line — the sentence was abandoned "
@@ -314,9 +477,14 @@ class Parser:
         if kind in ("halal", "haram"):
             self.eat()
             return BoolLiteralNode(token.line, token.column, kind == "halal")
-        if kind == "ident":
-            self.eat()
-            return VarNode(token.line, token.column, token.text)
+        if kind in ("ident", "sual"):
+            return self.parse_postfix()
+        if kind == "bayan":
+            raise self.error("'bayan' is a statement and has no value — a proclamation is made, "
+                             "not spent")
+        if kind == "string":
+            raise self.error("a string literal may stand only as the argument of 'bayan' — words "
+                             "are proclaimed, not computed")
         if kind == "(":
             self.eat()
             node = self.parse_expr()
@@ -336,6 +504,54 @@ class Parser:
             raise self.error(f"expected a value, got '{token.text}' — a keyword cannot stand in "
                              "for a value")
         raise self.error(f"expected a value, got '{token.text}'")
+
+
+    def parse_postfix(self) -> ExprNode:
+        """postfix ::= IDENT arguments                        (a call, or a new object)
+                     | "sual" "(" ")"
+                     | IDENT { "." IDENT } [ "." IDENT arguments ]
+        A call ends the chain: nothing may follow its ')'."""
+        token = self.eat()
+        if token.kind == "sual":
+            if self.peek_kind() != "(":
+                raise self.error("'sual' is asked as sual() — a question must be put aloud")
+            self.eat()
+            if self.peek_kind() != ")":
+                raise self.error("'sual' takes no arguments — the question is put to the user, "
+                                 "who supplies the answer")
+            self.eat()
+            return self.end_of_chain(ReadNode(token.line, token.column))
+        if self.peek_kind() == "(":
+            args = self.parse_arguments()
+            if token.text in self.diwans:
+                return self.end_of_chain(NewNode(token.line, token.column, token.text, args))
+            return self.end_of_chain(CallNode(token.line, token.column, token.text, args))
+        node: ExprNode = VarNode(token.line, token.column, token.text)
+        while self.peek_kind() == ".":
+            self.eat()
+            line, column, name = self.expect_member_name()
+            if self.peek_kind() == "(":
+                args = self.parse_arguments()
+                return self.end_of_chain(MemberCallNode(line, column, node, name, args))
+            node = FieldAccessNode(line, column, node, name)
+        return node
+
+    def end_of_chain(self, node: ExprNode) -> ExprNode:
+        if self.peek_kind() == ".":
+            raise self.error("a call ends the chain: nothing may follow its ')' — an answer is "
+                             "received whole, not taken apart")
+        return node
+
+    def parse_arguments(self) -> list[ExprNode]:  # arguments ::= "(" [ expr { "," expr } ] ")"
+        opener = self.eat()
+        args: list[ExprNode] = []
+        if self.peek_kind() != ")":
+            args.append(self.parse_expr())
+            while self.peek_kind() == ",":
+                self.eat()
+                args.append(self.parse_expr())
+        self.expect_close(opener)
+        return args
 
 
 def parse(lines: list[list[Token]]) -> ProgramNode:
