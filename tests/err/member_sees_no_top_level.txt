@@ -1,9 +1,10 @@
 assalamu alaikum
 diwan Box yalla
     inshallah dirham size
-    dua fatwa get() yalla
-        ameen size
+    dua dirham get() yalla
+        ameen limit
     khalas
 khalas
+bismillah dirham limit := 5
 bismillah Box b := Box(1)
 ameen b.get()

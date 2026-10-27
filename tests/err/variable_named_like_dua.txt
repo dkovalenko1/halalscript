@@ -1,0 +1,6 @@
+assalamu alaikum
+dua dirham total() yalla
+    ameen 1
+khalas
+bismillah dirham total := total()
+ameen total

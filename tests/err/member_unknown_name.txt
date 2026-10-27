@@ -1,9 +1,0 @@
-assalamu alaikum
-diwan Box yalla
-    inshallah dirham size
-    dua dirham get() yalla
-        ameen sise
-    khalas
-khalas
-bismillah Box b := Box(1)
-ameen b.get()

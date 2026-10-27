@@ -1,0 +1,50 @@
+Program
+  Diwan Point brace
+    Field x dirham bismillah (immutable)
+    Field y dirham bismillah (immutable)
+  Diwan Circle brace
+    Field center Point bismillah (immutable)
+    Field filled fatwa bismillah (immutable)
+  Dua origin() -> Point
+    Block yalla
+      Ameen
+        New Point (2 values)
+          Int 0
+          Int 0
+  Decl p Point bismillah (immutable)
+    New Point (2 values)
+      Int 3
+      BinOp -
+        Int 0
+        Int 4
+  Decl big dinar bismillah (immutable)
+    Int 3000000000
+  Bayan
+    String "salam: 100% \n stays as written"
+  Bayan
+    String "مرحبا"
+  Bayan
+    Var p
+  Bayan
+    New Circle (2 values)
+      Var p
+      Bool halal
+  Bayan
+    Call origin (0 arguments)
+  Bayan
+    BinOp +
+      Field p.x
+      Field p.y
+  Bayan
+    BinOp *
+      Var big
+      Int 2
+  Bayan
+    BinOp ==
+      Field p.x
+      Int 3
+  Bayan
+    Not
+      Bool halal
+  Ameen
+    Field p.y

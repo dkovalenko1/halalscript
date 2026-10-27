@@ -51,6 +51,22 @@ Prompt 4:
   settled. Every other file that does not require that type of writing should
   still follow the rules.
 
+Prompt 5:
+
+  The stage files mentions global state, but does it require any to be
+  actually used?
+
+Prompt 6:
+
+  How many tests did you add, and what are they doing? Did you cover new
+  functionality with basic behaviors and edge cases? We should avoid loads of
+  tests just to make them green; each one should bring real value by covering
+  a real concern.
+
+Prompt 7:
+
+  Yes, cut those three overlaps and add ones that close gaps. Update docs.
+
 
 2. WHAT THE AI PRODUCED, PART BY PART
 -------------------------------------
@@ -83,14 +99,19 @@ intrinsics. Both follow the structure of the SemanticChecker and CodeGen
 classes of my languages-and-compilers-design repository (practices 6 and 7).
 compiler.py now writes output.ll. Taken as generated.
 
-Task 4, tests. 15 new valid programs, each run end to end, and 61 new invalid
+Task 4, tests. 17 new valid programs, each run end to end, and 61 new invalid
 programs, plus check.py rewritten to compile, run under lli with NAME.in as
 input, and compare the output. The AI recorded the outputs and error lines by
 running the compiler, then read each one and checked it against the program
 before keeping it. Two stage 1 files changed: tests/ok/spacing_tight.txt used
 an undeclared name, which the new semantic pass rightly rejects, so a
 declaration was added; tests/err/decl_missing_type.expected now also lists "or
-a diwan" among the types. Taken as generated.
+a diwan" among the types. When I asked for an audit of the tests (prompt 6),
+the AI listed what each one covers, found three invalid programs that ran the
+same code path as another test, and found gaps: the three-way name collision
+in a member dua, a local named like a field, duplicate names, and --ast dumps
+of chains and strings. It removed the three overlapping programs and added
+five programs and two .ast files for the gaps.
 
 Extra. examples/treasury.halal, a stage 2 example program.
 
@@ -106,12 +127,17 @@ Extra. examples/treasury.halal, a stage 2 example program.
   never sees top-level names, and dropped the idea.
 - Objects are created as `Point(...)`. The AI had also offered `{3, 4}`.
 - The README keeps the voice it had in stage 1.
+- The stage only asks the README to state what happens when a parameter, a
+  field and a global share a name (prompt 5); globals do not have to be
+  visible, so the rule stays as it is, with a test for that exact case.
+- Every test must cover a real concern: overlapping tests were removed rather
+  than kept for the count (prompts 6 and 7).
 
 
 4. HOW THE RESULT WAS CHECKED
 -----------------------------
 
-check.py passes all 136 rows: 34 valid programs run end to end under lli,
+check.py passes all 138 rows: 36 valid programs run end to end under lli,
 99 invalid programs give their exact error line, and the 3 examples compile
 and run. Every program in the README was compiled and run. The IR of a member
 dua was read to confirm that its first parameter is a pointer and that a field

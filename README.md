@@ -112,8 +112,8 @@ file must also print exactly that tree with `--ast`. Every program in
 `tests/err` must be rejected with stderr equal to its `.expected` file, nothing
 on stdout and no output file. Every program in `examples/` must compile and
 run. It prints a PASS/FAIL table, lists the failed tests, and exits non-zero if
-any test fails. There are 34 valid and 99 invalid programs, each named after
-what it covers; all 34 valid ones run end to end.
+any test fails. There are 36 valid and 99 invalid programs, each named after
+what it covers; all 36 valid ones run end to end.
 
 ---
 
@@ -469,8 +469,9 @@ parameter's name; an inner block may shadow it.
 
 **Name lookup inside a member dua.** A name is looked up among the parameters
 and locals first, then among the fields of the diwan; a parameter or local
-named like a field hides the field. A top-level variable of that name is not
-reached: it is an error. A call `f(...)` is looked up among the member duas of
+named like a field hides the field. A top-level variable is never reached: when
+a parameter, a field and a top-level variable share a name, the parameter wins,
+and a name found only at the top level is an error. A call `f(...)` is looked up among the member duas of
 the same diwan first, then among the global duas, so a member dua hides a
 global dua of the same name; `f()` inside `Point` calls `f` on the same object.
 
@@ -511,16 +512,16 @@ literals; the exit line of a fatwa answer uses them too.
 | Rule | Followed in `tests/ok` | Broken in `tests/err` |
 |------|------------------------|-----------------------|
 | argument count and types | `fn_two_args_widen`, `fn_nested_calls_no_args` | `call_too_many_arguments`, `call_too_few_arguments`, `call_argument_wrong_type`, `call_argument_narrowing` |
-| the type of an answer | `fn_answer_widens`, `dua_object_param_and_result` | `dua_wrong_answer_type`, `member_wrong_answer_type`, `program_answers_object` |
+| the type of an answer | `fn_answer_widens`, `dua_object_param_and_result` | `dua_wrong_answer_type`, `program_answers_object` |
 | what a dua body sees | `fn_recursion_and_forward` | `dua_sees_no_top_level`, `dua_sees_no_wallahi`, `param_assigned` |
-| name lookup in a member dua | `member_lookup_order` | `member_unknown_name` |
-| fields, objects, chains | `new_nested_and_copy`, `field_chain_write` | `unknown_field`, `new_wrong_value_count`, `new_field_wrong_type`, `diwan_contains_itself` |
+| name lookup in a member dua | `member_name_shadowing`, `member_lookup_order` | `member_sees_no_top_level` |
+| fields, objects, chains | `new_nested_and_copy`, `field_chain_write` | `unknown_field`, `new_wrong_value_count`, `new_field_wrong_type`, `field_declared_twice`, `diwan_contains_itself` |
 | mutability of chains | `field_chain_write` | `assign_through_constant_object`, `assign_through_constant_field`, `assign_object_with_constant_field`, `assign_constant_field_in_member` |
-| mutating member duas | `member_mutating_cycle`, `member_mutates_through_field`, `field_chain_write` | `mutating_call_on_constant_object`, `mutating_call_through_constant_field`, `mutating_call_on_constant_field_in_member`, `mutating_cycle_on_constant_object`, `mutating_call_on_parameter` |
-| member calls | `field_chain_write`, `member_lookup_order` | `member_dua_unknown`, `member_call_on_coin`, `member_call_on_diwan`, `member_call_wrong_arguments` |
+| mutating member duas | `member_mutating_cycle`, `member_mutates_through_field`, `member_local_not_mutating`, `field_chain_write` | `mutating_call_on_constant_object`, `mutating_call_through_constant_field`, `mutating_call_on_constant_field_in_member`, `mutating_cycle_on_constant_object`, `mutating_call_on_parameter` |
+| member calls | `field_chain_write`, `member_lookup_order` | `member_dua_unknown`, `member_call_on_coin`, `member_call_on_diwan` |
 | printing and reading | `print_every_kind`, `read_input` | `bayan_as_value`, `bayan_two_values`, `bayan_empty`, `string_outside_bayan`, `sual_with_argument` |
 | program and diwan order | every program with a diwan | `dua_after_statement`, `diwan_after_dua`, `dua_inside_dua`, `field_after_member_dua`, `member_dua_before_field` |
-| types and declarations (stage 1 rules) | `scope_shadowing`, `decl_all_kinds` | `undeclared_name`, `redeclared_in_block`, `assign_bismillah`, `assign_wallahi`, `narrowing_dinar_to_dirham`, `compare_fatwa_with_dirham`, `arithmetic_on_fatwa`, `condition_not_fatwa`, `la_on_dirham` |
+| types and declarations (stage 1 rules) | `scope_shadowing`, `decl_all_kinds` | `undeclared_name`, `redeclared_in_block`, `variable_named_like_dua`, `assign_bismillah`, `assign_wallahi`, `narrowing_dinar_to_dirham`, `compare_fatwa_with_dirham`, `arithmetic_on_fatwa`, `condition_not_fatwa`, `la_on_dirham` |
 | riba | `wallahi_folding`, `runtime_riba`, `literal_i64_max` | `wallahi_fold_overflow`, `wallahi_runtime_value`, `literal_too_big_for_dirham`, `literal_beyond_i64` |
 
 ### Names and reserved words
