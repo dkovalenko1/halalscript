@@ -1,0 +1,2 @@
+Ring(outer: Point(x: 5, y: 6), inner: Point(x: 1, y: 2), weight: 2)
+Program exit with result 107

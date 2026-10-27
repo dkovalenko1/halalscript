@@ -1,0 +1,14 @@
+assalamu alaikum
+diwan Point yalla
+    inshallah dirham x
+    inshallah dirham y
+    dua dirham d2() yalla
+        ameen x * x + y * y
+    khalas
+    dua dirham shift(dirham dx) yalla
+        x := x + dx
+        ameen x
+    khalas
+khalas
+inshallah Point p := Point(1, 2)
+ameen p.shift(1, 2)

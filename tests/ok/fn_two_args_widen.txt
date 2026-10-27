@@ -1,0 +1,8 @@
+assalamu alaikum
+# a dirham argument widens into a dinar parameter
+dua dinar add(dinar a, dinar b) yalla
+    ameen a + b
+khalas
+bismillah dirham small := 7
+bismillah dinar big := 3000000000
+ameen add(small, big)

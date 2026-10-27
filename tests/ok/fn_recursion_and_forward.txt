@@ -1,0 +1,15 @@
+assalamu alaikum
+# fib calls itself and later, which is declared below it
+dua dirham fib(dirham n) yalla
+    istikhara n == 0 yalla
+        ameen 0
+    khalas
+    istikhara n == 1 {
+        ameen 1
+    }
+    ameen fib(n - 1) + later(n - 2)
+khalas
+dua dirham later(dirham n) yalla
+    ameen fib(n)
+khalas
+ameen fib(10)

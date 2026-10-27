@@ -1,0 +1,22 @@
+Program
+  Diwan Point yalla
+    Field x dirham bismillah (immutable)
+    Field y dirham bismillah (immutable)
+    Dua d2() -> dirham (member of Point)
+      Block yalla
+        Ameen
+          BinOp +
+            BinOp *
+              Var x
+              Var x
+            BinOp *
+              Var y
+              Var y
+  Decl p Point bismillah (immutable)
+    New Point (2 values)
+      Sual
+      Sual
+  Bayan
+    Var p
+  Ameen
+    MemberCall d2 on p (0 arguments)

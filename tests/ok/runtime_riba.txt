@@ -1,0 +1,6 @@
+assalamu alaikum
+inshallah dirham x := 2000000000
+bayan("doubling")
+x := x + x
+bayan("never printed")
+ameen x

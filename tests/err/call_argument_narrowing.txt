@@ -1,0 +1,6 @@
+assalamu alaikum
+dua dirham add(dirham a, dirham b) yalla
+    ameen a + b
+khalas
+bismillah dinar big := 5
+ameen add(big, 1)

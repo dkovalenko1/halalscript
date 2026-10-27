@@ -1,0 +1,10 @@
+assalamu alaikum
+diwan Box yalla
+    bismillah dirham size
+    dua dirham grow() yalla
+        size := size + 1
+        ameen size
+    khalas
+khalas
+inshallah Box b := Box(1)
+ameen b.grow()

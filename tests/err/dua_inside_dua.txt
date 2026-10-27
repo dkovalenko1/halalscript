@@ -1,0 +1,8 @@
+assalamu alaikum
+dua dirham f() yalla
+    dua dirham g() yalla
+        ameen 1
+    khalas
+    ameen 1
+khalas
+ameen 0

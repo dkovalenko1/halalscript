@@ -1,0 +1,16 @@
+assalamu alaikum
+diwan Point yalla
+    inshallah dirham x
+    inshallah dirham y
+khalas
+diwan Ring yalla
+    bismillah Point outer
+    bismillah Point inner
+    bismillah dinar weight
+khalas
+inshallah Point p := Point(1, 2)
+bismillah Point q := p          # a copy: changing p later leaves q alone
+p.x := 100
+bismillah Ring r := Ring(Point(5, 6), q, q.y)
+bayan(r)
+ameen r.outer.y + r.inner.x + p.x

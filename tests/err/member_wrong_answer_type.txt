@@ -1,0 +1,9 @@
+assalamu alaikum
+diwan Box yalla
+    inshallah dirham size
+    dua fatwa get() yalla
+        ameen size
+    khalas
+khalas
+bismillah Box b := Box(1)
+ameen b.get()

@@ -1,0 +1,9 @@
+assalamu alaikum
+inshallah dirham x := 1
+istikhara x == 1 yalla
+    bismillah fatwa x := halal     # a block is a scope: x may be declared again, with any type
+    istikhara x {
+        bayan(x)
+    }
+khalas
+ameen x

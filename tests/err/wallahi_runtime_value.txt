@@ -1,0 +1,4 @@
+assalamu alaikum
+bismillah dirham y := 2
+wallahi dirham LIMIT := y * 3
+ameen LIMIT
