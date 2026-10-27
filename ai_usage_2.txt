@@ -83,7 +83,7 @@ intrinsics. Both follow the structure of the SemanticChecker and CodeGen
 classes of my languages-and-compilers-design repository (practices 6 and 7).
 compiler.py now writes output.ll. Taken as generated.
 
-Task 4, tests. 14 new valid programs, each run end to end, and 60 new invalid
+Task 4, tests. 15 new valid programs, each run end to end, and 61 new invalid
 programs, plus check.py rewritten to compile, run under lli with NAME.in as
 input, and compare the output. The AI recorded the outputs and error lines by
 running the compiler, then read each one and checked it against the program
@@ -111,8 +111,8 @@ Extra. examples/treasury.halal, a stage 2 example program.
 4. HOW THE RESULT WAS CHECKED
 -----------------------------
 
-check.py passes all 134 rows: 33 valid programs run end to end under lli,
-98 invalid programs give their exact error line, and the 3 examples compile
+check.py passes all 136 rows: 34 valid programs run end to end under lli,
+99 invalid programs give their exact error line, and the 3 examples compile
 and run. Every program in the README was compiled and run. The IR of a member
 dua was read to confirm that its first parameter is a pointer and that a field
 write is a gep, a load, an add and a store.

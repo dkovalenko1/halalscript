@@ -1,0 +1,17 @@
+assalamu alaikum
+diwan Point yalla
+    inshallah dirham x
+    dua dirham shift(dirham dx) yalla
+        x := x + dx
+        ameen x
+    khalas
+khalas
+diwan Circle yalla
+    inshallah Point center
+    dua dirham move(dirham d) yalla
+        ameen center.shift(d)
+    khalas
+khalas
+inshallah Circle c := Circle(Point(1))
+bismillah dirham r := c.move(5)
+ameen c.center.x

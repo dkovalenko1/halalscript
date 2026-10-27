@@ -112,8 +112,8 @@ file must also print exactly that tree with `--ast`. Every program in
 `tests/err` must be rejected with stderr equal to its `.expected` file, nothing
 on stdout and no output file. Every program in `examples/` must compile and
 run. It prints a PASS/FAIL table, lists the failed tests, and exits non-zero if
-any test fails. There are 33 valid and 98 invalid programs, each named after
-what it covers; all 33 valid ones run end to end.
+any test fails. There are 34 valid and 99 invalid programs, each named after
+what it covers; all 34 valid ones run end to end.
 
 ---
 
@@ -516,7 +516,7 @@ literals; the exit line of a fatwa answer uses them too.
 | name lookup in a member dua | `member_lookup_order` | `member_unknown_name` |
 | fields, objects, chains | `new_nested_and_copy`, `field_chain_write` | `unknown_field`, `new_wrong_value_count`, `new_field_wrong_type`, `diwan_contains_itself` |
 | mutability of chains | `field_chain_write` | `assign_through_constant_object`, `assign_through_constant_field`, `assign_object_with_constant_field`, `assign_constant_field_in_member` |
-| mutating member duas | `member_mutating_cycle`, `field_chain_write` | `mutating_call_on_constant_object`, `mutating_call_through_constant_field`, `mutating_cycle_on_constant_object`, `mutating_call_on_parameter` |
+| mutating member duas | `member_mutating_cycle`, `member_mutates_through_field`, `field_chain_write` | `mutating_call_on_constant_object`, `mutating_call_through_constant_field`, `mutating_call_on_constant_field_in_member`, `mutating_cycle_on_constant_object`, `mutating_call_on_parameter` |
 | member calls | `field_chain_write`, `member_lookup_order` | `member_dua_unknown`, `member_call_on_coin`, `member_call_on_diwan`, `member_call_wrong_arguments` |
 | printing and reading | `print_every_kind`, `read_input` | `bayan_as_value`, `bayan_two_values`, `bayan_empty`, `string_outside_bayan`, `sual_with_argument` |
 | program and diwan order | every program with a diwan | `dua_after_statement`, `diwan_after_dua`, `dua_inside_dua`, `field_after_member_dua`, `member_dua_before_field` |
