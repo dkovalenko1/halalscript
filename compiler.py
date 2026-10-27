@@ -1,11 +1,13 @@
-"""The HalalScript compiler front end (stage 1: lexer and parser).
+"""The HalalScript compiler.
 
+    python3 compiler.py input.txt output.ll  check the program and write its LLVM IR
     python3 compiler.py --ast input.txt      print the syntax tree
     python3 compiler.py --tokens input.txt   print the tokens, one per line
     python3 compiler.py input.txt            check the program and deliver a verdict
 
 On an error: one line on stderr, `compilation error: line L:C: message`, exit
-code 1 and nothing on stdout.
+code 1, nothing on stdout and no output file. The output file is written only
+after every phase has succeeded. llvmlite is needed only to write IR.
 """
 
 import argparse
@@ -15,15 +17,21 @@ import sys
 from src.errors import CompileError
 from src.lexer import lex
 from src.parser import parse
+from src.semantic import SemanticChecker
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="HalalScript compiler, stage 1")
+    parser = argparse.ArgumentParser(description="HalalScript compiler, stage 2")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--ast", action="store_true", help="print the syntax tree")
     mode.add_argument("--tokens", action="store_true", help="print the tokens")
     parser.add_argument("source", type=Path, help="path to the HalalScript program")
+    parser.add_argument("output", type=Path, nargs="?", help="path of the LLVM IR file to write")
     args = parser.parse_args()
+    if (args.ast or args.tokens) and args.output is not None:
+        parser.error("--ast and --tokens take only the source path")
+    if args.output is not None and args.output.suffix != ".ll":
+        parser.error("the output file must have the .ll extension")
 
     try:
         data = args.source.read_bytes()
@@ -34,17 +42,28 @@ def main() -> int:
     try:
         lines = lex(data)
         if args.tokens:
-            output = "\n".join(f"{t.line}:{t.column} {t.kind} {t.text!r}"
-                               for tokens in lines for t in tokens)
-        else:
-            tree = parse(lines)
-            output = tree.dump() if args.ast else (
-                "The program is accepted: its syntax is sound and its greeting was returned. "
-                "Code generation arrives in a later stage.")
+            print("\n".join(f"{t.line}:{t.column} {t.kind} {t.text!r}"
+                            for tokens in lines for t in tokens))
+            return 0
+        tree = parse(lines)
+        if args.ast:
+            print(tree.dump())
+            return 0
+        tree.accept(SemanticChecker())
+        if args.output is None:
+            print("The program is accepted: its syntax is sound, its types are lawful and its "
+                  "greeting was returned.")
+            return 0
+        from src.codegen import generate  # llvmlite is imported only when IR is wanted
+        ir_text = generate(tree)
     except CompileError as error:
         print(error, file=sys.stderr)
         return 1
-    print(output)
+    try:
+        args.output.write_text(ir_text, encoding="utf-8")
+    except OSError as error:
+        print(f"compilation error: cannot write '{args.output}': {error.strerror}", file=sys.stderr)
+        return 1
     return 0
 
 

@@ -1,4 +1,6 @@
 Program
+  Decl la_not_a_keyword dirham bismillah (immutable)
+    Int 2
   Decl a dirham inshallah (mutable)
     BinOp +
       Int 1
