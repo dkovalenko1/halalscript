@@ -29,7 +29,8 @@ whole language of stage 2: diwans, duas, field chains, `sual` and `bayan`.
 - **Commands**:
   - *HalalScript: Run the program* (also the ▷ button of the editor) compiles the
     file to LLVM IR and runs it under `lli` in a terminal, where `sual()` reads
-    what you type. It runs only in a trusted workspace.
+    what you type; when the program calls `sual()`, the terminal says so before
+    it waits. It runs only in a trusted workspace.
   - *HalalScript: Show the syntax tree* opens the `--ast` dump beside the program.
   - *Convert digits to Eastern Arabic* (`Ctrl+Cmd+A` on macOS, `Ctrl+Alt+A`
     elsewhere) and *Convert digits to Western (0-9)*.

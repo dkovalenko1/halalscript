@@ -374,7 +374,8 @@ async function runProgram(): Promise<void> {
   const terminal = vscode.window.createTerminal({
     name: title,
     shellPath: python,
-    shellArgs: ["-B", runner, compiler, source, source.replace(/\.halal$/, ".ll"), lli],
+    shellArgs: ["-B", runner, compiler, source, source.replace(/\.halal$/, ".ll"), lli,
+      path.basename(document.fileName)],
   });
   terminal.show();
 }

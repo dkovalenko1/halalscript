@@ -83,6 +83,21 @@ Prompt 10:
   Great, let's implement all of it, including the optional ones. Screenshots
   were taken by Claude using a computer use; you should do the same.
 
+Prompt 11 (with a screenshot of my VS Code reporting "the character '.'
+appears in no scripture accepted by this language" in examples/treasury.halal):
+
+  Example from the repo shows the error now
+
+Prompt 12:
+
+  Where can i configure halalscript.pythonPath?
+
+Prompt 13 (with a screenshot of an empty terminal after pressing the run
+button):
+
+  running examples/treasury.halal using button produces nothing, terminal is
+  stuck
+
 
 2. WHAT THE AI PRODUCED, PART BY PART
 -------------------------------------
@@ -154,6 +169,12 @@ the screenshots with the extension's own screenshot script, which drives a
 downloaded VS Code and captures the screen. It then looked at each of the nine
 images; one hover was cut off by VS Code's maximum hover height, so it shortened
 that keyword's example and took the screenshots again.
+
+Trying the extension myself (prompts 11 to 13). My VS Code still ran the
+installed 0.1.0 extension, whose stage 1 compiler has no '.' token; the AI
+installed the 0.2.0 package. The empty terminal was the program waiting for
+its two sual() numbers without saying so; the AI made the runner announce the
+program and, when it calls sual(), ask for the input before it waits.
 
 
 3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
