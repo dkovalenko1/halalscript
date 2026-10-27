@@ -4,10 +4,16 @@
   "scopeName": "source.halalscript",
   "patterns": [
     { "include": "#comment" },
+    { "include": "#string" },
     { "include": "#greeting" },
+    { "include": "#diwan-header" },
+    { "include": "#dua-header" },
+    { "include": "#parameter" },
     { "include": "#declaration" },
     { "include": "#keywords" },
     { "include": "#literals" },
+    { "include": "#member" },
+    { "include": "#call" },
     { "include": "#operators" },
     { "include": "#punctuation" },
     { "include": "#identifier" }
@@ -20,6 +26,19 @@
         "1": { "name": "punctuation.definition.comment.halalscript" }
       }
     },
+    "string": {
+      "comment": "a string literal ends on its line; there are no escape sequences",
+      "patterns": [
+        {
+          "match": "\"[^\"\\n]*\"",
+          "name": "string.quoted.double.halalscript"
+        },
+        {
+          "match": "\"[^\"\\n]*$",
+          "name": "invalid.illegal.unclosed-string.halalscript"
+        }
+      ]
+    },
     "greeting": {
       "match": "\\b(assalamu)\\s+(alaikum)\\b",
       "name": "meta.greeting.halalscript",
@@ -28,22 +47,58 @@
         "2": { "name": "keyword.other.greeting.halalscript" }
       }
     },
-    "declaration": {
-      "comment": "wallahi|bismillah|inshallah <type> <name>: the declared name gets its own scope",
+    "type": {
+      "comment": "a coin or a fatwa, or the name of a diwan",
       "patterns": [
         {
-          "match": "\\b(wallahi)\\s+(dirham|dinar|fatwa)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "match": "\\b(dirham|dinar|fatwa)\\b",
+          "name": "storage.type.halalscript"
+        },
+        {
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b",
+          "name": "entity.name.type.diwan.halalscript"
+        }
+      ]
+    },
+    "diwan-header": {
+      "match": "\\b(diwan)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+      "captures": {
+        "1": { "name": "storage.type.diwan.halalscript" },
+        "2": { "name": "entity.name.type.diwan.halalscript" }
+      }
+    },
+    "dua-header": {
+      "match": "\\b(dua)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+      "captures": {
+        "1": { "name": "storage.type.function.dua.halalscript" },
+        "2": { "patterns": [{ "include": "#type" }] },
+        "3": { "name": "entity.name.function.halalscript" }
+      }
+    },
+    "parameter": {
+      "comment": "<type> <name> right after '(' or ',' and before ',' or ')': a parameter of a dua",
+      "match": "(?<=[(,])\\s*(?!la\\b)([A-Za-z_][A-Za-z0-9_]*)\\s+([A-Za-z_][A-Za-z0-9_]*)(?=\\s*[,)])",
+      "captures": {
+        "1": { "patterns": [{ "include": "#type" }] },
+        "2": { "name": "variable.parameter.halalscript" }
+      }
+    },
+    "declaration": {
+      "comment": "wallahi|bismillah|inshallah <type> <name>: a variable, or a field when no ':=' follows",
+      "patterns": [
+        {
+          "match": "\\b(wallahi)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
           "captures": {
             "1": { "name": "storage.modifier.constant.halalscript" },
-            "2": { "name": "storage.type.halalscript" },
+            "2": { "patterns": [{ "include": "#type" }] },
             "3": { "name": "variable.other.constant.declaration.halalscript" }
           }
         },
         {
-          "match": "\\b(bismillah|inshallah)\\s+(dirham|dinar|fatwa)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "match": "\\b(bismillah|inshallah)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
           "captures": {
             "1": { "name": "storage.modifier.halalscript" },
-            "2": { "name": "storage.type.halalscript" },
+            "2": { "patterns": [{ "include": "#type" }] },
             "3": { "name": "variable.other.declaration.halalscript" }
           }
         }
@@ -64,6 +119,14 @@
           "name": "storage.type.halalscript"
         },
         {
+          "match": "\\bdiwan\\b",
+          "name": "storage.type.diwan.halalscript"
+        },
+        {
+          "match": "\\bdua\\b",
+          "name": "storage.type.function.dua.halalscript"
+        },
+        {
           "match": "\\b(istikhara|qadarallah|ma_dama)\\b",
           "name": "keyword.control.conditional.halalscript"
         },
@@ -74,6 +137,10 @@
         {
           "match": "\\bameen\\b",
           "name": "keyword.control.exit.halalscript"
+        },
+        {
+          "match": "\\b(sual|bayan)\\b",
+          "name": "support.function.builtin.halalscript"
         },
         {
           "match": "\\bla\\b",
@@ -100,6 +167,32 @@
           "name": "constant.numeric.decimal.arabic.halalscript"
         }
       ]
+    },
+    "member": {
+      "comment": ".name( is a member dua; .name otherwise is a field",
+      "patterns": [
+        {
+          "match": "(\\.)\\s*([A-Za-z_][A-Za-z0-9_]*)(?=\\s*\\()",
+          "captures": {
+            "1": { "name": "punctuation.accessor.halalscript" },
+            "2": { "name": "entity.name.function.member.halalscript" }
+          }
+        },
+        {
+          "match": "(\\.)\\s*([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "punctuation.accessor.halalscript" },
+            "2": { "name": "variable.other.property.halalscript" }
+          }
+        }
+      ]
+    },
+    "call": {
+      "comment": "name( is a call of a dua, or Point( a new object; the grammar cannot tell them apart",
+      "match": "\\b([A-Za-z_][A-Za-z0-9_]*)(?=\\s*\\()",
+      "captures": {
+        "1": { "name": "entity.name.function.call.halalscript" }
+      }
     },
     "operators": {
       "patterns": [
@@ -130,6 +223,10 @@
         {
           "match": "[()]",
           "name": "punctuation.section.parens.halalscript"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.comma.halalscript"
         }
       ]
     },

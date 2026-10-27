@@ -134,11 +134,11 @@ export const KEYWORDS: Keyword[] = [
   },
   {
     word: "ameen",
-    role: "program exit with a value",
+    role: "program exit with a value; inside a dua, its answer (return)",
     arabic: "آمين",
     meaning: "\"so be it\" — said at the end of a supplication",
     ruling:
-      "Every program is a supplication and every supplication ends with *ameen*. Nothing may be spoken after it — not in its block, not in the program.",
+      "Every program is a supplication and every supplication ends with *ameen*. At the top level it ends the program; inside a *dua* its value is the dua's answer. Nothing may be spoken after it — not in its block, not in the program.",
     example: "ameen total",
   },
   {
@@ -148,6 +148,41 @@ export const KEYWORDS: Keyword[] = [
     meaning: "\"no\"",
     ruling: "The `!` is an exclamation, not an argument. Negation is spoken plainly: *la*.",
     example: "bismillah fatwa refused := la (x == 20)",
+  },
+  {
+    word: "dua",
+    role: "function (global, or a member of a diwan)",
+    arabic: "دعاء",
+    meaning: "\"supplication\" — a request that is answered",
+    ruling:
+      "Every program is a supplication, and a *dua* is a smaller one within it: it asks, and *ameen* gives its answer. A dua is offered with exactly what it asks, no more and no less, and it is answered in the coin it asked for. It carries only what is handed to it: the variables of the program stay outside.",
+    example: "dua dirham add(dirham a, dirham b) yalla\n    ameen a + b\nkhalas",
+  },
+  {
+    word: "diwan",
+    role: "structure: fields, then member duas",
+    arabic: "ديوان",
+    meaning: "the register of the early caliphate, which recorded each person and their entries",
+    ruling:
+      "A register is drawn up before the business begins, and in each diwan the entries are written before the duties. An entry begun with *bismillah* is set when the object is created; an *inshallah* entry may be amended, but only by one whose every link to it is *inshallah* too.",
+    example: "diwan Point yalla\n    inshallah dirham x\nkhalas",
+  },
+  {
+    word: "sual",
+    role: "read one dirham from the standard input",
+    arabic: "سؤال",
+    meaning: "\"question\"",
+    ruling: "The program puts its question to the user and receives the answer as a dirham. It is asked as `sual()`, with nothing inside: the user supplies the answer.",
+    example: "bismillah dirham a := sual()",
+  },
+  {
+    word: "bayan",
+    role: "print one value or string literal, and a newline",
+    arabic: "بيان",
+    meaning: "\"proclamation, official statement\"",
+    ruling:
+      "The program proclaims one thing at a time, for the herald has one voice. A string literal is a proclamation and nothing else: it cannot be stored, added or answered. A fatwa is proclaimed as *halal* or *haram*; an object as its diwan and its fields.",
+    example: "bayan(\"the register:\")\nbayan(p)",
   },
   {
     word: "ma_dama",

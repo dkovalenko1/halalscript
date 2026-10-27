@@ -32,6 +32,9 @@ async function main(): Promise<void> {
     "git.enabled": false,
     "git.openRepositoryInParentFolders": "never",
     "telemetry.telemetryLevel": "off",
+    // "Run the program" needs a Python with llvmlite and lli: HALALSCRIPT_PYTHON and LLI
+    "halalscript.pythonPath": process.env.HALALSCRIPT_PYTHON || "python3",
+    "halalscript.lliPath": process.env.LLI || "lli",
   }, null, 2));
 
   process.env.HALALSCRIPT_SHOTS = path.join(root, "images");

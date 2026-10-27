@@ -32,6 +32,24 @@ async function open(name: string, line = 0, character = 0): Promise<vscode.TextE
   return editor;
 }
 
+/** The position of the nth occurrence of text in a document, plus an offset into it. */
+function find(editor: vscode.TextEditor, text: string, nth = 1, offset = 0): vscode.Position {
+  const source = editor.document.getText();
+  let index = -1;
+  for (let i = 0; i < nth; i++) {
+    index = source.indexOf(text, index + 1);
+  }
+  if (index < 0) {
+    throw new Error(`'${text}' not found in ${editor.document.fileName}`);
+  }
+  return editor.document.positionAt(index + offset);
+}
+
+function place(editor: vscode.TextEditor, position: vscode.Position): void {
+  editor.selection = new vscode.Selection(position, position);
+  editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+}
+
 async function reset(): Promise<void> {
   await cmd("workbench.action.closeAllEditors");
   await cmd("workbench.action.closePanel");
@@ -44,9 +62,9 @@ export async function run(): Promise<void> {
   await sleep(3000); // let the window settle
   await cmd("workbench.action.closeAuxiliaryBar");
 
-  // 1. highlighting
+  // 1. highlighting: diwans, duas, chains, sual, bayan and strings
   await reset();
-  await open("zakat.halal");
+  await open("treasury.halal");
   await shot("1-highlighting");
 
   // 2. a syntax error underlined, its message on hover and in Problems
@@ -61,16 +79,17 @@ export async function run(): Promise<void> {
 
   // 3. the Official Ruling of a keyword on hover
   await reset();
-  await open("zakat.halal", 5, 3);
+  const diwanKeyword = await open("treasury.halal");
+  place(diwanKeyword, find(diwanKeyword, "diwan Purse", 1, 2));
   await cmd("editor.action.showHover");
   await shot("3-hover-ruling");
 
-  // 4. completion with the keyword's documentation, and the snippets
+  // 4. completion after a chain: the fields and member duas of the diwan it reaches
   await reset();
-  const editor = await open("zakat.halal", 16, 0);
-  await editor.edit((e) => e.insert(new vscode.Position(16, 0), "\n"));
-  editor.selection = new vscode.Selection(16, 0, 16, 0);
-  await cmd("type", { text: "ist" });
+  const chain = await open("treasury.halal");
+  const end = find(chain, "ameen zakat(t)");
+  await chain.edit((e) => e.insert(end, "bayan(t.purse.)\n"));
+  place(chain, end.translate(0, "bayan(t.purse.".length));
   await cmd("editor.action.triggerSuggest");
   await sleep(800);
   await cmd("toggleSuggestionDetails");
@@ -80,7 +99,7 @@ export async function run(): Promise<void> {
 
   // 5. the syntax tree beside the program
   await reset();
-  await open("zakat.halal");
+  await open("treasury.halal");
   await cmd("halalscript.showAst");
   await shot("5-syntax-tree");
 
@@ -89,6 +108,35 @@ export async function run(): Promise<void> {
   await open("zakat.halal", 5, 27);
   await cmd("editor.action.showHover");
   await shot("6-arabic-numeral");
+
+  // 7. a semantic error: a mutating dua called on a bismillah object
+  await reset();
+  const constant = await open("constant_object.halal");
+  await sleep(1500);
+  await cmd("workbench.actions.view.problems");
+  await vscode.window.showTextDocument(constant.document);
+  place(constant, find(constant, "deposit(50)", 1, 2));
+  await cmd("editor.action.showHover");
+  await shot("7-semantic-error");
+
+  // 8. a dua's signature on hover over its call
+  await reset();
+  const call = await open("treasury.halal");
+  place(call, find(call, "ameen zakat(t)", 1, 8));
+  await cmd("editor.action.showHover");
+  await shot("8-hover-dua");
+
+  // 9. running the program: the terminal reads sual() from what is typed
+  await reset();
+  await open("treasury.halal");
+  await cmd("halalscript.runProgram");
+  await sleep(2500);
+  const terminal = vscode.window.terminals.find((t) => t.name === "HalalScript: treasury.halal");
+  terminal?.sendText("120000 2000");
+  await sleep(2500);
+  await shot("9-run-program");
+  terminal?.sendText("");
+  terminal?.dispose();
 
   await reset();
 }

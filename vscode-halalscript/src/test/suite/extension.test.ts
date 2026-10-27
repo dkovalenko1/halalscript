@@ -170,4 +170,116 @@ describe("HalalScript extension", () => {
     assert.match(tree.document.getText(), /^Program\n  Decl LIMIT dinar wallahi \(constant\)/);
     assert.match(tree.document.getText(), /Int 12 \(١٢\)/);
   });
+
+  // ---------- stage 2: diwans, duas, sual, bayan ----------
+
+  async function hoverAt(editor: vscode.TextEditor, line: number, word: string, nth = 1): Promise<string> {
+    const text = editor.document.lineAt(line).text;
+    let column = -1;
+    for (let i = 0; i < nth; i++) {
+      column = text.indexOf(word, column + 1);
+    }
+    assert.ok(column >= 0, `'${word}' not on line ${line}`);
+    const hovers = await vscode.commands.executeCommand<vscode.Hover[]>(
+      "vscode.executeHoverProvider", editor.document.uri, new vscode.Position(line, column + 1));
+    return hoverText(hovers);
+  }
+
+  async function completionLabels(editor: vscode.TextEditor, line: number, column: number): Promise<string[]> {
+    const list = await vscode.commands.executeCommand<vscode.CompletionList>(
+      "vscode.executeCompletionItemProvider", editor.document.uri, new vscode.Position(line, column));
+    return list.items
+      .filter((i) => i.kind !== vscode.CompletionItemKind.Snippet && i.kind !== vscode.CompletionItemKind.Text)
+      .map((i) => (typeof i.label === "string" ? i.label : i.label.label));
+  }
+
+  it("reports no error for a program with diwans, duas and bayan", async () => {
+    const editor = await open("stage2.halal");
+    await new Promise((r) => setTimeout(r, 1500));
+    assert.deepStrictEqual(vscode.languages.getDiagnostics(editor.document.uri), []);
+  });
+
+  it("underlines a semantic error: a mutating dua called on a bismillah object", async () => {
+    const editor = await open("constant_object.halal");
+    const [diagnostic] = await diagnosticsOf(editor.document.uri, (d) => d.length > 0);
+    assert.match(diagnostic.message, /cannot call mutating dua 'deposit' on 't\.purse': 't' is immutable/);
+    const start = editor.document.lineAt(17).text.indexOf("deposit");
+    assert.deepStrictEqual(
+      [diagnostic.range.start.line, diagnostic.range.start.character, diagnostic.range.end.character],
+      [17, start, start + "deposit".length],
+    );
+  });
+
+  it("shows the Official Ruling of dua, diwan and bayan on hover", async () => {
+    const editor = await open("stage2.halal");
+    assert.match(await hoverAt(editor, 13, "dua"), /\*\*dua\*\* — function/);
+    assert.match(await hoverAt(editor, 1, "diwan"), /\*\*diwan\*\* — structure/);
+    assert.match(await hoverAt(editor, 18, "bayan"), /\*\*bayan\*\* — print/);
+  });
+
+  it("shows a dua's signature, a diwan's fields and a field reached through a chain", async () => {
+    const editor = await open("stage2.halal");
+    assert.match(await hoverAt(editor, 19, "zakat"), /dua dinar zakat\(Treasury t\)/);
+    assert.match(await hoverAt(editor, 17, "deposit"), /member dua of diwan Purse/);
+    const diwan = await hoverAt(editor, 16, "Treasury", 2);
+    assert.match(diwan, /inshallah Purse purse/);
+    assert.match(diwan, /diwan with 2 fields and 0 member duas/);
+    assert.match(await hoverAt(editor, 14, "coins"), /mutable field of diwan Purse/);
+    assert.match(await hoverAt(editor, 14, "rate"), /immutable field of diwan Treasury/);
+  });
+
+  it("resolves a name inside a member dua: a field, a parameter, never a top-level name", async () => {
+    const editor = await open("stage2.halal");
+    assert.match(await hoverAt(editor, 5, "coins", 2), /mutable field of this diwan/);
+    assert.match(await hoverAt(editor, 5, "amount"), /parameter of dua deposit/);
+    assert.match(await hoverAt(editor, 14, "t"), /parameter of dua zakat/);
+  });
+
+  it("completes only the fields and member duas of the diwan a chain reaches", async () => {
+    const editor = await open("stage2.halal");
+    const line = editor.document.lineAt(14).text;
+    const sorted = async (column: number) => (await completionLabels(editor, 14, column)).sort();
+    assert.deepStrictEqual(await sorted(line.indexOf("purse")), ["purse", "rate"]);
+    assert.deepStrictEqual(await sorted(line.indexOf("coins")), ["coins", "deposit", "owner"]);
+  });
+
+  it("completes duas and diwans, and inside a dua only the names it can see", async () => {
+    const editor = await open("stage2.halal");
+    const top = await completionLabels(editor, 19, 0);
+    for (const want of ["zakat", "Treasury", "Purse", "t", "total", "dua", "diwan", "bayan", "sual"]) {
+      assert.ok(top.includes(want), `missing completion '${want}'`);
+    }
+    const inside = await completionLabels(editor, 14, 4);
+    assert.ok(inside.includes("t") && inside.includes("zakat"), JSON.stringify(inside));
+    assert.ok(!inside.includes("total"), "a dua cannot see the top-level 'total'");
+    const member = await completionLabels(editor, 5, 8);
+    for (const want of ["coins", "owner", "amount", "deposit"]) {
+      assert.ok(member.includes(want), `missing completion '${want}' inside a member dua`);
+    }
+  });
+
+  it("offers the diwan and dua snippets for a typed prefix", async () => {
+    const document = await vscode.workspace.openTextDocument(
+      { language: "halalscript", content: "assalamu alaikum\ndi\ndu\nameen 0\n" });
+    await vscode.window.showTextDocument(document);
+    const snippetsAt = async (line: number) => {
+      const list = await vscode.commands.executeCommand<vscode.CompletionList>(
+        "vscode.executeCompletionItemProvider", document.uri, new vscode.Position(line, 2));
+      return list.items
+        .filter((i) => i.kind === vscode.CompletionItemKind.Snippet)
+        .map((i) => (typeof i.label === "string" ? i.label : i.label.label));
+    };
+    const diwan = await snippetsAt(1);
+    assert.ok(diwan.includes("diwan") && diwan.includes("diwan{"), "snippets offered: " + JSON.stringify(diwan));
+    const dua = await snippetsAt(2);
+    assert.ok(dua.includes("dua") && dua.includes("dua{"), "snippets offered: " + JSON.stringify(dua));
+  });
+
+  it("runs the program in a terminal of its own", async () => {
+    await open("stage2.halal");
+    await vscode.commands.executeCommand("halalscript.runProgram");
+    const terminal = vscode.window.terminals.find((t) => t.name === "HalalScript: stage2.halal");
+    assert.ok(terminal, "no terminal: " + JSON.stringify(vscode.window.terminals.map((t) => t.name)));
+    terminal.dispose();
+  });
 });

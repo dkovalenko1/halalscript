@@ -67,6 +67,22 @@ Prompt 7:
 
   Yes, cut those three overlaps and add ones that close gaps. Update docs.
 
+Prompt 8:
+
+  There are a few more things I'd like to change. First of all, the README
+  section with the setup/running guide now contains macOS-specific rules,
+  which should not be the case.
+
+Prompt 9:
+
+  Next is the VSCode extension. I want it to be synced with all the new
+  functionality we have now. What are the things we need to add?
+
+Prompt 10:
+
+  Great, let's implement all of it, including the optional ones. Screenshots
+  were taken by Claude using a computer use; you should do the same.
+
 
 2. WHAT THE AI PRODUCED, PART BY PART
 -------------------------------------
@@ -115,6 +131,30 @@ five programs and two .ast files for the gaps.
 
 Extra. examples/treasury.halal, a stage 2 example program.
 
+Setup steps (prompt 8). The README's build steps named Homebrew paths; the AI
+rewrote them for any platform (the LLVM tools on PATH, commands inside an
+activated virtual environment) and removed the Homebrew fallback from
+check.py, then ran the new steps as written in a fresh copy of the repository.
+
+VS Code extension (optional, prompts 9 and 10). The AI listed what the stage 1
+extension lacked, and on my request implemented all of it: the bundled
+compiler now includes the semantic pass, so semantic errors are underlined
+live; the TextMate grammar covers diwans, duas, parameters, calls, member calls,
+field chains, strings, sual and bayan; the keyword table has rulings for dua,
+diwan, sual and bayan; new snippets; a symbol scanner (src/symbols.ts) gives
+hovers with dua signatures, diwan fields and fields reached through a chain,
+and completion of only the fields and member duas after "chain."; a command
+runs the program under lli in a terminal (runner/run_program.py), only in a
+trusted workspace, with a new halalscript.lliPath setting. It added a grammar
+test for the new scopes, nine integration tests and two fixtures, and three new
+screenshot scenes. Taken as generated.
+
+Screenshots (prompt 10). The session had no computer-use tool, so the AI took
+the screenshots with the extension's own screenshot script, which drives a
+downloaded VS Code and captures the screen. It then looked at each of the nine
+images; one hover was cut off by VS Code's maximum hover height, so it shortened
+that keyword's example and took the screenshots again.
+
 
 3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
 -------------------------------------------------------------
@@ -132,6 +172,9 @@ Extra. examples/treasury.halal, a stage 2 example program.
   visible, so the rule stays as it is, with a test for that exact case.
 - Every test must cover a real concern: overlapping tests were removed rather
   than kept for the count (prompts 6 and 7).
+- The setup steps must not depend on one platform (prompt 8).
+- The extension gets every proposed feature, including the optional ones:
+  completion after '.', the run command and new screenshots (prompt 10).
 
 
 4. HOW THE RESULT WAS CHECKED
@@ -139,7 +182,9 @@ Extra. examples/treasury.halal, a stage 2 example program.
 
 check.py passes all 138 rows: 36 valid programs run end to end under lli,
 99 invalid programs give their exact error line, and the 3 examples compile
-and run. Every program in the README was compiled and run. The IR of a member
+and run. Every program in the README was compiled and run. The extension
+passes its two grammar tests and 23 integration tests in a downloaded VS Code,
+and the packaged halalscript-0.2.0.vsix holds the stage 2 compiler. The IR of a member
 dua was read to confirm that its first parameter is a pointer and that a field
 write is a gep, a load, an add and a store.
 

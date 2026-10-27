@@ -42,9 +42,9 @@ Three complete programs live in [`examples/`](examples): `tour.halal` walks
 through every stage 1 feature, with experiments in its comments that trigger the
 compiler's errors, `zakat.halal` is a small calculation, and `treasury.halal`
 keeps a register of purses with diwans, member duas, `sual` and `bayan` (its
-input is in `treasury.in`). Open the first two in VS Code with the
-[extension](#vs-code-extension) to try the highlighting, the hovers and the live
-errors.
+input is in `treasury.in`). Open them in VS Code with the
+[extension](#vs-code-extension) to try the highlighting, the hovers, the live
+errors and the run command.
 
 ## Running the compiler
 
@@ -86,16 +86,15 @@ compilation error: line 3:17: 'yalla' is never answered by 'khalas' — a journe
 ## VS Code extension
 
 [`vscode-halalscript/`](vscode-halalscript/README.md) adds HalalScript support to
-VS Code for `.halal` files: highlighting, the compiler's errors underlined as you
-type, keyword rulings on hover, completion, snippets, `yalla`/`khalas` bracket
-matching, Eastern Arabic digit conversion, and a syntax-tree viewer. It was
-built in stage 1 and still knows only the stage 1 language: it bundles its own
-copy of the stage 1 compiler, so it reports `diwan`, `dua`, `sual` and `bayan`
-as errors.
+VS Code for `.halal` files: highlighting, the compiler's syntax and semantic
+errors underlined as you type, keyword rulings and signatures on hover,
+completion (after `t.purse.`, the fields and member duas of that diwan),
+snippets, `yalla`/`khalas` bracket matching, Eastern Arabic digit conversion, a
+syntax-tree viewer, and a command that runs the program in a terminal.
 
 ```sh
 cd vscode-halalscript && npm install && npm run package
-code --install-extension halalscript-0.1.0.vsix
+code --install-extension halalscript-0.2.0.vsix
 ```
 
 ## Running the tests

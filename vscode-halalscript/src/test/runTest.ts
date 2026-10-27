@@ -16,6 +16,7 @@ async function main(): Promise<void> {
       launchArgs: [
         path.join(extensionDevelopmentPath, "test", "fixtures"),
         "--disable-extensions",
+        "--disable-workspace-trust", // the run command works only in a trusted workspace
       ],
     });
   } catch {

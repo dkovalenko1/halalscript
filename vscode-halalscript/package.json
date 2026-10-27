@@ -1,8 +1,8 @@
 {
   "name": "halalscript",
   "displayName": "HalalScript",
-  "description": "Language support for HalalScript: highlighting, snippets, keyword rulings on hover, completion, live compiler verdicts and Eastern Arabic digits.",
-  "version": "0.1.0",
+  "description": "Language support for HalalScript: highlighting, snippets, keyword rulings on hover, completion of names, fields and member duas, live compiler verdicts, Eastern Arabic digits, and running a program.",
+  "version": "0.2.0",
   "publisher": "dkovalenko1",
   "license": "MIT",
   "repository": {
@@ -21,10 +21,11 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": "limited",
-      "description": "In Restricted Mode the compiler always runs from the halalscript.pythonPath and halalscript.compilerPath of your user settings; a workspace cannot change which program runs.",
+      "description": "In Restricted Mode the compiler always runs from the halalscript.pythonPath and halalscript.compilerPath of your user settings; a workspace cannot change which program runs, and no HalalScript program is run.",
       "restrictedConfigurations": [
         "halalscript.pythonPath",
-        "halalscript.compilerPath"
+        "halalscript.compilerPath",
+        "halalscript.lliPath"
       ]
     },
     "virtualWorkspaces": false
@@ -72,6 +73,12 @@
         "command": "halalscript.showAst",
         "title": "Show the syntax tree",
         "category": "HalalScript"
+      },
+      {
+        "command": "halalscript.runProgram",
+        "title": "Run the program",
+        "category": "HalalScript",
+        "icon": "$(play)"
       }
     ],
     "menus": {
@@ -87,6 +94,16 @@
         {
           "command": "halalscript.showAst",
           "when": "editorLangId == halalscript"
+        },
+        {
+          "command": "halalscript.runProgram",
+          "when": "editorLangId == halalscript"
+        }
+      ],
+      "editor/title/run": [
+        {
+          "command": "halalscript.runProgram",
+          "when": "resourceLangId == halalscript"
         }
       ]
     },
@@ -110,6 +127,11 @@
           "type": "string",
           "default": "",
           "description": "Path to a HalalScript compiler.py. Empty: use the compiler bundled with the extension."
+        },
+        "halalscript.lliPath": {
+          "type": "string",
+          "default": "lli",
+          "description": "The LLVM interpreter that runs a compiled program (HalalScript: Run the program). Running also needs llvmlite installed for halalscript.pythonPath."
         },
         "halalscript.diagnostics.enabled": {
           "type": "boolean",

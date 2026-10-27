@@ -1,0 +1,45 @@
+# SYNTAX TEST "source.halalscript" "HalalScript stage 2: diwans, duas, chains, calls, sual, bayan and strings"
+diwan Point yalla
+# <----- storage.type.diwan.halalscript
+#     ^^^^^ entity.name.type.diwan.halalscript
+    inshallah Point center
+#   ^^^^^^^^^ storage.modifier.halalscript
+#             ^^^^^ entity.name.type.diwan.halalscript
+#                   ^^^^^^ variable.other.declaration.halalscript
+    bismillah dirham radius
+#             ^^^^^^ storage.type.halalscript
+#                    ^^^^^^ variable.other.declaration.halalscript
+    dua dinar area(Point p, dirham dx) yalla
+#   ^^^ storage.type.function.dua.halalscript
+#       ^^^^^ storage.type.halalscript
+#             ^^^^ entity.name.function.halalscript
+#                  ^^^^^ entity.name.type.diwan.halalscript
+#                        ^ variable.parameter.halalscript
+#                         ^ punctuation.separator.comma.halalscript
+#                           ^^^^^^ storage.type.halalscript
+#                                  ^^ variable.parameter.halalscript
+        ameen p.x * dx
+#             ^ variable.other.halalscript
+#              ^ punctuation.accessor.halalscript
+#               ^ variable.other.property.halalscript
+    khalas
+khalas
+bismillah Point c := Point(1, 2)
+#         ^^^^^ entity.name.type.diwan.halalscript
+#                    ^^^^^ entity.name.function.call.halalscript
+bismillah dirham moved := c.center.shift(2)
+#                           ^^^^^^ variable.other.property.halalscript
+#                                  ^^^^^ entity.name.function.member.halalscript
+bayan("salam # not a comment")
+# <----- support.function.builtin.halalscript
+#     ^^^^^^^^^^^^^^^^^^^^^^^ string.quoted.double.halalscript
+bayan(add(sual(), la halal))
+#     ^^^ entity.name.function.call.halalscript
+#         ^^^^ support.function.builtin.halalscript
+#                 ^^ keyword.operator.logical.halalscript
+#                    ^^^^^ constant.language.boolean.halalscript
+bayan("never closed)
+#     ^^^^^^^^^^^^^^ invalid.illegal.unclosed-string.halalscript
+ameen c.radius   # a comment may hold "quotes"
+# <----- keyword.control.exit.halalscript
+#                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line.number-sign.halalscript
