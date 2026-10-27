@@ -25,6 +25,7 @@ export interface Variable {
   kind: string; // wallahi | bismillah | inshallah | parameter
   type: string;
   line: number;
+  end: number; // the closer of the block that declares it: the last line it is visible on
   dua?: Dua; // the dua whose body or parameter list declares it
 }
 
@@ -69,9 +70,17 @@ export function scan(lines: string[]): Symbols {
   let diwan: Diwan | undefined; // the diwan being read, at depth 1
   let dua: Dua | undefined; // the dua being read
   let duaDepth = 0;
+  // One frame per open block, holding the variables it declares; the bottom
+  // frame is the top level. Closing a block ends the visibility of its frame.
+  const frames: Variable[][] = [[]];
+  const last = lines.length - 1;
   lines.forEach((raw, line) => {
     const text = code(raw);
+    let opened: Variable[] = []; // declared on this line, inside the block it opens
     if (CLOSES.test(text)) {
+      for (const v of frames.length > 1 ? frames.pop()! : []) {
+        v.end = line;
+      }
       depth--;
       if (dua && depth === duaDepth) {
         dua.end = line;
@@ -80,6 +89,10 @@ export function scan(lines: string[]): Symbols {
       if (diwan && depth === 0) {
         diwan.end = line;
         diwan = undefined;
+      }
+      if (OPENS.test(text)) { // "} qadarallah {" is not the layout, but stay balanced
+        frames.push([]);
+        depth++;
       }
       return;
     }
@@ -97,15 +110,17 @@ export function scan(lines: string[]): Symbols {
       }
       symbols.duas.push(dua);
       duaDepth = depth;
-      for (const p of params) {
-        symbols.variables.push({ name: p.name, kind: "parameter", type: p.type, line, dua });
-      }
+      opened = params.map((p) => ({ name: p.name, kind: "parameter", type: p.type, line, end: last, dua }));
+      symbols.variables.push(...opened);
     } else if ((match = DECLARATION.exec(text))) {
-      symbols.variables.push({ kind: match[1], type: match[2], name: match[3], line, dua });
+      const variable = { kind: match[1], type: match[2], name: match[3], line, end: last, dua };
+      symbols.variables.push(variable);
+      frames[frames.length - 1].push(variable);
     } else if (diwan && depth === 1 && (match = FIELD.exec(text))) {
       diwan.fields.push({ kind: match[1], type: match[2], name: match[3], line });
     }
     if (OPENS.test(text)) {
+      frames.push(opened); // a dua's parameters belong to its body
       depth++;
     }
   });
@@ -118,15 +133,18 @@ export function duaAt(symbols: Symbols, line: number): Dua | undefined {
 }
 
 /**
- * The variable a name refers to on a line, as the semantic pass would find it:
- * the nearest declaration above in the same dua (parameters included). Outside
- * every dua, the nearest top-level declaration above; a dua never sees those.
+ * The variables a line can see, as the semantic pass would: those declared above
+ * it in the same dua (parameters included), or outside every dua at the top
+ * level, whose block has not closed yet. A dua never sees the top level.
  */
-export function variableAt(symbols: Symbols, name: string, line: number): Variable | undefined {
+export function visibleAt(symbols: Symbols, line: number): Variable[] {
   const dua = duaAt(symbols, line);
-  return symbols.variables
-    .filter((v) => v.name === name && v.line <= line && v.dua === dua)
-    .pop();
+  return symbols.variables.filter((v) => v.line <= line && line <= v.end && v.dua === dua);
+}
+
+/** The variable a name refers to on a line: the nearest visible declaration above. */
+export function variableAt(symbols: Symbols, name: string, line: number): Variable | undefined {
+  return visibleAt(symbols, line).filter((v) => v.name === name).pop();
 }
 
 /** The field a bare name refers to inside a member dua, when no variable hides it. */

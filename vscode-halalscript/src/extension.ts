@@ -14,7 +14,7 @@ import { numberAround, toArabicDigits, toWesternDigits } from "./digits";
 import { KEYWORD_BY_WORD, KEYWORDS, keywordMarkdown } from "./keywords";
 import {
   chainBefore, Diwan, diwanOfChain, Dua, duaAt, duaNamed, KIND_FLAG, ownFieldAt, scan, signature, Symbols,
-  variableAt,
+  variableAt, visibleAt,
 } from "./symbols";
 
 const LANGUAGE = "halalscript";
@@ -297,7 +297,7 @@ function provideCompletionItems(document: vscode.TextDocument, position: vscode.
   };
   // the names this line can see: its own dua's names, or the top level's
   const dua = duaAt(symbols, line);
-  const here = symbols.variables.filter((v) => v.line <= line && v.dua === dua);
+  const here = visibleAt(symbols, line);
   for (const v of here.reverse()) {
     const kind = v.kind === "wallahi" ? vscode.CompletionItemKind.Constant : vscode.CompletionItemKind.Variable;
     const item = new vscode.CompletionItem(v.name, kind);

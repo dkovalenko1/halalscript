@@ -119,6 +119,10 @@ Prompt 17:
 
   Yes, fix findings 1-4.
 
+Prompt 18:
+
+  We have time left to fix 5th finding with the extension, let's fix that too.
+
 
 2. WHAT THE AI PRODUCED, PART BY PART
 -------------------------------------
@@ -213,8 +217,10 @@ output short; a field named like a diwan could not receive a member call; a
 500-term expression ended in a Python traceback (the recursion limit is now
 raised, and a program deeper still gets a compilation error instead); a member
 dua could take a diwan's name, against the README. The fifth, in the VS Code
-extension (a declaration still found after its block closed), was left for
-later as a known limitation.
+extension (hover and completion still found a declaration after its block had
+closed), was first left for later, then fixed on my request (prompt 18): the
+symbol scanner now records where each declaration's block closes, and an
+integration test covers the reviewer's program.
 
 
 3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
@@ -244,7 +250,7 @@ later as a known limitation.
 check.py passes all 144 rows: 41 valid programs run end to end under lli,
 100 invalid programs give their exact error line, and the 3 examples compile
 and run. Every program in the README was compiled and run. The extension
-passes its two grammar tests and 23 integration tests in a downloaded VS Code,
+passes its two grammar tests and 24 integration tests in a downloaded VS Code,
 and the packaged halalscript-0.2.0.vsix holds the stage 2 compiler. The IR of a member
 dua was read to confirm that its first parameter is a pointer and that a field
 write is a gep, a load, an add and a store.

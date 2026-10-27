@@ -258,6 +258,14 @@ describe("HalalScript extension", () => {
     }
   });
 
+  it("forgets a declaration once its block closes, like the compiler", async () => {
+    const editor = await open("block_scope.halal");
+    assert.match(await hoverAt(editor, 7, "p"), /immutable dirham, declared on line 7/);
+    assert.match(await hoverAt(editor, 9, "p"), /immutable Point, declared on line 5/);
+    const line = editor.document.lineAt(9).text;
+    assert.deepStrictEqual(await completionLabels(editor, 9, line.indexOf("x")), ["x"]);
+  });
+
   it("offers the diwan and dua snippets for a typed prefix", async () => {
     const document = await vscode.workspace.openTextDocument(
       { language: "halalscript", content: "assalamu alaikum\ndi\ndu\nameen 0\n" });
