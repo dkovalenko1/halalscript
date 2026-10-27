@@ -49,25 +49,25 @@ errors.
 ## Running the compiler
 
 Requirements: Python 3.10 or newer, [llvmlite](https://llvmlite.readthedocs.io)
-0.49 (in `requirements.txt`), and the LLVM tools to run the result: `lli`, or
-`llc` and `clang`. On macOS, `brew install llvm` provides them in
-`/opt/homebrew/opt/llvm/bin`.
+0.49 (in `requirements.txt`), and the [LLVM](https://llvm.org) tools on `PATH`
+to run the result: `lli`, or `llc` and `clang`.
 
 ```sh
 git clone https://github.com/dkovalenko1/halalscript.git
 cd halalscript
 git checkout stage2
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-export PATH="/opt/homebrew/opt/llvm/bin:$PATH"    # where lli and llc live, if not on PATH yet
+# activate the environment as your shell requires, e.g. source .venv/bin/activate
+pip install -r requirements.txt
 
-.venv/bin/python compiler.py examples/tour.halal output.ll   # compile to LLVM IR
-lli output.ll                                                # run it
-llc -filetype=obj output.ll -o output.o && clang output.o -o program && ./program   # or build it
+python compiler.py examples/tour.halal output.ll   # compile to LLVM IR
+lli output.ll                                      # run it
+llc -filetype=obj output.ll -o output.o            # or build it into a program
+clang output.o -o program
 
-.venv/bin/python compiler.py --ast examples/tour.halal      # print the syntax tree
-.venv/bin/python compiler.py --tokens examples/tour.halal   # print the tokens (debugging)
-.venv/bin/python compiler.py examples/tour.halal            # only check the program
+python compiler.py --ast examples/tour.halal       # print the syntax tree
+python compiler.py --tokens examples/tour.halal    # print the tokens (debugging)
+python compiler.py examples/tour.halal             # only check the program
 ```
 
 `--ast`, `--tokens` and the check without an output file do not need llvmlite.
@@ -101,7 +101,7 @@ code --install-extension halalscript-0.1.0.vsix
 ## Running the tests
 
 ```sh
-.venv/bin/python check.py        # LLI=/path/to/lli if lli is neither on PATH nor in Homebrew's LLVM
+python check.py                  # set LLI=/path/to/lli if lli is not on PATH
 ```
 
 `check.py` compiles every program in `tests/ok` to `.ll`, runs it under `lli`,

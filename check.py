@@ -8,8 +8,8 @@ tests/err/*.txt  must be rejected: a non-zero exit code, nothing on stdout, no
                  output file, and stderr equal to the .expected file
 examples/*.halal must compile and run
 
-Run it with the Python that has llvmlite installed. LLI=/path/to/lli picks the
-interpreter; by default it is lli on PATH, then Homebrew's LLVM.
+Run it with the Python that has llvmlite installed. The interpreter is lli on
+PATH, or the one LLI=/path/to/lli names.
 Exit status 0 only when every test passes.
 """
 
@@ -23,13 +23,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parent
 COMPILER = ROOT / "compiler.py"
 TESTS = ROOT / "tests"
-LLI_CANDIDATES = ["/opt/homebrew/opt/llvm/bin/lli", "/usr/local/opt/llvm/bin/lli"]
-
-
 def find_lli() -> str | None:
-    if "LLI" in os.environ:
-        return os.environ["LLI"]
-    return shutil.which("lli") or next((p for p in LLI_CANDIDATES if Path(p).exists()), None)
+    return os.environ.get("LLI") or shutil.which("lli")
 
 
 def run(command, stdin: str | None = None) -> subprocess.CompletedProcess:
