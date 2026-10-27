@@ -84,8 +84,16 @@ class CodeGen:
         self.builder.call(self.printf, [self.text(fmt), *args])
 
     def emit_text(self, data: bytes):
-        """Print data as it is: through %s, so a '%' in it stays a '%'."""
-        self.printf_call(b"%s", self.text(data))
+        """Print data as it is: through %s, so a '%' in it stays a '%'.
+
+        %s stops at a NUL byte, so each NUL of a string literal is printed
+        with %c and the parts between them with %s.
+        """
+        for index, part in enumerate(data.split(b"\0")):
+            if index:
+                self.printf_call(b"%c", ZERO)
+            if part:
+                self.printf_call(b"%s", self.text(part))
 
     def coerce(self, value, have: str, want: str):
         if have == "dirham" and want == "dinar":

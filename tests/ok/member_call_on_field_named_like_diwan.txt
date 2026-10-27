@@ -1,0 +1,17 @@
+assalamu alaikum
+# Inside Box, the name Point is the field Point (an object), not the diwan,
+# so Point.get() is a member call on that field.
+diwan Point yalla
+    inshallah dirham x
+    dua dirham get() yalla
+        ameen x
+    khalas
+khalas
+diwan Box yalla
+    inshallah Point Point
+    dua dirham get() yalla
+        ameen Point.get()
+    khalas
+khalas
+bismillah Box b := Box(Point(7))
+ameen b.get()

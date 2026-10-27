@@ -19,6 +19,10 @@ from src.lexer import lex
 from src.parser import parse
 from src.semantic import SemanticChecker
 
+# Every pass walks a left-grouped chain such as 1 + 1 + ... one call per
+# operator, so a long expression needs more than Python's default 1000 frames.
+sys.setrecursionlimit(20000)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="HalalScript compiler, stage 2")
@@ -58,6 +62,10 @@ def main() -> int:
         ir_text = generate(tree)
     except CompileError as error:
         print(error, file=sys.stderr)
+        return 1
+    except RecursionError:
+        print("compilation error: line 1:1: the program is nested too deeply to be judged — "
+              "split its longest expression into several declarations", file=sys.stderr)
         return 1
     try:
         args.output.write_text(ir_text, encoding="utf-8")

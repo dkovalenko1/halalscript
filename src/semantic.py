@@ -99,6 +99,13 @@ class SemanticChecker:
         self.fail(node, f"'{node.name}' is used before its declaration — the compiler does not "
                         "acknowledge the unintroduced")
 
+    def visible_value(self, name: str) -> bool:
+        """A variable, parameter or field of this name is in scope here."""
+        if any(name in frame for frame in self.scopes):
+            return True
+        owner = self.function.owner if self.function is not None else None
+        return bool(owner) and any(f.name == name for f in self.diwans[owner].fields)
+
     def deep_constant_field(self, type_name: str):
         """'Diwan.field' of the first bismillah field at any depth, or None."""
         diwan = self.diwans.get(type_name)
@@ -122,6 +129,10 @@ class SemanticChecker:
             self.check_new_name(dua, "a dua")
             self.duas[dua.name] = dua
         members = [dua for diwan in node.diwans for dua in diwan.duas]
+        for dua in members:  # a member dua may hide a global dua, but not a diwan
+            if dua.name in self.diwans:
+                self.fail(dua, f"'{dua.name}' is already the name of a diwan and cannot name a "
+                               "member dua — a name is given but once")
         for dua in [*members, *node.duas]:
             for param in dua.params:
                 self.check_type(param.type_name, param)
@@ -367,7 +378,8 @@ class SemanticChecker:
 
     def visit_member_call(self, node):
         receiver = node.receiver
-        if isinstance(receiver, VarNode) and receiver.name in self.diwans:
+        if (isinstance(receiver, VarNode) and receiver.name in self.diwans
+                and not self.visible_value(receiver.name)):
             self.fail(receiver, f"cannot call '{node.name}' on the diwan '{receiver.name}' itself "
                                 "— duties are performed by an object, not by its register")
         type_name = receiver.accept(self)

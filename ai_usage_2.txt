@@ -107,6 +107,18 @@ Prompt 15:
 
   Add numeric check before returning anything.
 
+Prompt 16:
+
+  Spin up the gpt-6.1-sol agent to review the changes we made for this stage.
+  It should have access to the stage file and be able to run/compile any code
+  it needs for checking without leaving any bloat in the repo.  It should
+  report real, proven findings in priority order. Justify and explain its
+  findings and whether we should fix them.
+
+Prompt 17:
+
+  Yes, fix findings 1-4.
+
 
 2. WHAT THE AI PRODUCED, PART BY PART
 -------------------------------------
@@ -139,7 +151,7 @@ intrinsics. Both follow the structure of the SemanticChecker and CodeGen
 classes of my languages-and-compilers-design repository (practices 6 and 7).
 compiler.py now writes output.ll. Taken as generated.
 
-Task 4, tests. 19 new valid programs, each run end to end, and 61 new invalid
+Task 4, tests. 22 new valid programs, each run end to end, and 62 new invalid
 programs, plus check.py rewritten to compile, run under lli with NAME.in as
 input, and compare the output. The AI recorded the outputs and error lines by
 running the compiler, then read each one and checked it against the program
@@ -192,6 +204,18 @@ request it made sual() check scanf's result, and also the dirham range, since
 4000000000 wrapped silently; either failure now halts the program with a
 verdict before the value is used. Two end-to-end tests cover the two checks.
 
+Independent review (prompts 16 and 17). A second agent, OpenAI's gpt-6.1-sol
+run through the same T3 Code app, reviewed the branch against the stage PDF
+with the rule to report only findings it reproduced, and left the repository
+untouched. It reported five; Claude reproduced each before recommending. On my
+request four were fixed, each with a test: a NUL byte in a string cut bayan's
+output short; a field named like a diwan could not receive a member call; a
+500-term expression ended in a Python traceback (the recursion limit is now
+raised, and a program deeper still gets a compilation error instead); a member
+dua could take a diwan's name, against the README. The fifth, in the VS Code
+extension (a declaration still found after its block closed), was left for
+later as a known limitation.
+
 
 3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
 -------------------------------------------------------------
@@ -217,8 +241,8 @@ verdict before the value is used. Two end-to-end tests cover the two checks.
 4. HOW THE RESULT WAS CHECKED
 -----------------------------
 
-check.py passes all 140 rows: 38 valid programs run end to end under lli,
-99 invalid programs give their exact error line, and the 3 examples compile
+check.py passes all 144 rows: 41 valid programs run end to end under lli,
+100 invalid programs give their exact error line, and the 3 examples compile
 and run. Every program in the README was compiled and run. The extension
 passes its two grammar tests and 23 integration tests in a downloaded VS Code,
 and the packaged halalscript-0.2.0.vsix holds the stage 2 compiler. The IR of a member
