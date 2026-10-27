@@ -98,6 +98,15 @@ button):
   running examples/treasury.halal using button produces nothing, terminal is
   stuck
 
+Prompt 14:
+
+  Two separate calls to sual() read from one line? Is that the correct
+  behaviour? Shouldn't different reads() use different lines of input?
+
+Prompt 15:
+
+  Add numeric check before returning anything.
+
 
 2. WHAT THE AI PRODUCED, PART BY PART
 -------------------------------------
@@ -130,7 +139,7 @@ intrinsics. Both follow the structure of the SemanticChecker and CodeGen
 classes of my languages-and-compilers-design repository (practices 6 and 7).
 compiler.py now writes output.ll. Taken as generated.
 
-Task 4, tests. 17 new valid programs, each run end to end, and 61 new invalid
+Task 4, tests. 19 new valid programs, each run end to end, and 61 new invalid
 programs, plus check.py rewritten to compile, run under lli with NAME.in as
 input, and compare the output. The AI recorded the outputs and error lines by
 running the compiler, then read each one and checked it against the program
@@ -176,6 +185,13 @@ installed the 0.2.0 package. The empty terminal was the program waiting for
 its two sual() numbers without saying so; the AI made the runner announce the
 program and, when it calls sual(), ask for the input before it waits.
 
+Reading input (prompts 14 and 15). The AI showed that the task reads one
+number per call, not one line (point_read.in holds "3 4" for two reads), and
+found that sual() returned garbage when the input held a word or nothing. On my
+request it made sual() check scanf's result, and also the dirham range, since
+4000000000 wrapped silently; either failure now halts the program with a
+verdict before the value is used. Two end-to-end tests cover the two checks.
+
 
 3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
 -------------------------------------------------------------
@@ -201,7 +217,7 @@ program and, when it calls sual(), ask for the input before it waits.
 4. HOW THE RESULT WAS CHECKED
 -----------------------------
 
-check.py passes all 138 rows: 36 valid programs run end to end under lli,
+check.py passes all 140 rows: 38 valid programs run end to end under lli,
 99 invalid programs give their exact error line, and the 3 examples compile
 and run. Every program in the README was compiled and run. The extension
 passes its two grammar tests and 23 integration tests in a downloaded VS Code,

@@ -111,8 +111,8 @@ file must also print exactly that tree with `--ast`. Every program in
 `tests/err` must be rejected with stderr equal to its `.expected` file, nothing
 on stdout and no output file. Every program in `examples/` must compile and
 run. It prints a PASS/FAIL table, lists the failed tests, and exits non-zero if
-any test fails. There are 36 valid and 99 invalid programs, each named after
-what it covers; all 36 valid ones run end to end.
+any test fails. There are 38 valid and 99 invalid programs, each named after
+what it covers; all 38 valid ones run end to end.
 
 ---
 
@@ -322,8 +322,9 @@ It is checked at four points:
   dirham is expected, and any dinar → dirham narrowing;
 - `wallahi` constants are folded at compile time, and an overflow while folding
   is a compilation error;
-- `+ - *` are computed through `llvm.sadd/ssub/smul.with.overflow`; when one
-  overflows at runtime, the program prints the verdict and exits with code 1.
+- `+ - *` are computed through `llvm.sadd/ssub/smul.with.overflow`, and
+  `sual()` checks that the number it read fits a dirham; when one overflows at
+  runtime, the program prints the verdict and exits with code 1.
 
 ```
 compilation error: line 2:22: constant 9223372036854775808 exceeds even the dinar (i64) — this is riba, an increase beyond every permitted measure
@@ -414,11 +415,16 @@ ameen p.x
 ### `sual` and `bayan` — input and output
 
 *Su'al*, "question"; *bayan*, "proclamation". `sual()` reads one dirham from
-the standard input. `bayan(...)` prints one value, or one string literal, and a
+the standard input: the next number, wherever it stands, so `3 4` on one line
+and `3` and `4` on two lines are the same answer to two calls. When the input
+holds no number there (a word, or nothing left), or a number that does not fit
+a dirham, the program prints the verdict and exits with code 1 before the
+value is used. `bayan(...)` prints one value, or one string literal, and a
 newline.
 
 > **Official Ruling.** The program puts its question to the user and receives
-> the answer as a dirham. It proclaims one thing at a time, for the herald has
+> the answer as a dirham. An answer that is not a coin, or a coin too large for
+> the purse, is not accepted in place of one. It proclaims one thing at a time, for the herald has
 > one voice. A string literal is a proclamation and nothing else: it cannot be
 > stored, added or answered.
 
@@ -518,10 +524,10 @@ literals; the exit line of a fatwa answer uses them too.
 | mutability of chains | `field_chain_write` | `assign_through_constant_object`, `assign_through_constant_field`, `assign_object_with_constant_field`, `assign_constant_field_in_member` |
 | mutating member duas | `member_mutating_cycle`, `member_mutates_through_field`, `member_local_not_mutating`, `field_chain_write` | `mutating_call_on_constant_object`, `mutating_call_through_constant_field`, `mutating_call_on_constant_field_in_member`, `mutating_cycle_on_constant_object`, `mutating_call_on_parameter` |
 | member calls | `field_chain_write`, `member_lookup_order` | `member_dua_unknown`, `member_call_on_coin`, `member_call_on_diwan` |
-| printing and reading | `print_every_kind`, `read_input` | `bayan_as_value`, `bayan_two_values`, `bayan_empty`, `string_outside_bayan`, `sual_with_argument` |
+| printing and reading | `print_every_kind`, `read_input`, `read_not_a_number` | `bayan_as_value`, `bayan_two_values`, `bayan_empty`, `string_outside_bayan`, `sual_with_argument` |
 | program and diwan order | every program with a diwan | `dua_after_statement`, `diwan_after_dua`, `dua_inside_dua`, `field_after_member_dua`, `member_dua_before_field` |
 | types and declarations (stage 1 rules) | `scope_shadowing`, `decl_all_kinds` | `undeclared_name`, `redeclared_in_block`, `variable_named_like_dua`, `assign_bismillah`, `assign_wallahi`, `narrowing_dinar_to_dirham`, `compare_fatwa_with_dirham`, `arithmetic_on_fatwa`, `condition_not_fatwa`, `la_on_dirham` |
-| riba | `wallahi_folding`, `runtime_riba`, `literal_i64_max` | `wallahi_fold_overflow`, `wallahi_runtime_value`, `literal_too_big_for_dirham`, `literal_beyond_i64` |
+| riba | `wallahi_folding`, `runtime_riba`, `read_beyond_dirham`, `literal_i64_max` | `wallahi_fold_overflow`, `wallahi_runtime_value`, `literal_too_big_for_dirham`, `literal_beyond_i64` |
 
 ### Names and reserved words
 

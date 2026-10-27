@@ -1,0 +1,8 @@
+assalamu alaikum
+# The second answer is a word: sual() halts the program instead of returning
+# whatever was in memory.
+bismillah dirham a := sual()
+bayan(a)
+bismillah dirham b := sual()
+bayan("never printed")
+ameen a + b

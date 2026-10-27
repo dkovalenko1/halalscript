@@ -267,17 +267,20 @@ class CodeGen:
         pair = getattr(self.builder, OVERFLOW_NAMES[node.op])(left, right)
         value = self.builder.extract_value(pair, 0)
         overflow = self.builder.extract_value(pair, 1)
-        with self.builder.if_then(overflow, likely=False):
-            message = (f"riba: {node.type} overflow in '{node.op}' at line {node.line}:{node.column}"
-                       " — the value increased beyond its permitted measure; execution is halted "
-                       "in disapproval\n")
-            self.emit_text(message.encode("utf-8"))
+        self.halt_if(overflow, f"riba: {node.type} overflow in '{node.op}' at line "
+                               f"{node.line}:{node.column} — the value increased beyond its "
+                               "permitted measure; execution is halted in disapproval")
+        return value
+
+    def halt_if(self, condition, message: str):
+        """When condition holds at runtime, print the verdict and exit with code 1."""
+        with self.builder.if_then(condition, likely=False):
+            self.emit_text((message + "\n").encode("utf-8"))
             if self.exit is None:
                 self.exit = ir.Function(self.module, ir.FunctionType(ir.VoidType(), [I32]),
                                         name="exit")
             self.builder.call(self.exit, [ir.Constant(I32, 1)])
             self.builder.unreachable()
-        return value
 
     def visit_not(self, node):
         return self.builder.not_(node.operand.accept(self))
@@ -323,9 +326,22 @@ class CodeGen:
             self.scanf = ir.Function(self.module,
                                      ir.FunctionType(I32, [I8.as_pointer()], var_arg=True),
                                      name="scanf")
-        slot = self.entry_alloca("dirham", "read")
-        self.builder.call(self.scanf, [self.text(b"%d"), slot])
-        return self.builder.load(slot)
+        # Read a dinar, so that a number too big for a dirham is seen rather than wrapped.
+        slot = self.entry_alloca("dinar", "read")
+        # scanf returns how many numbers it stored: anything but 1 means the input held
+        # no number here (a word, or the end of the input), and the slot holds garbage
+        stored = self.builder.call(self.scanf, [self.text(b"%lld"), slot])
+        where = f"at line {node.line}:{node.column}"
+        self.halt_if(self.builder.icmp_signed("!=", stored, ir.Constant(I32, 1)),
+                     f"sual: expected a number {where} — the question was answered with "
+                     "something that is not a coin; execution is halted")
+        value = self.builder.load(slot)
+        too_big = self.builder.icmp_signed(">", value, ir.Constant(I64, 2**31 - 1))
+        too_small = self.builder.icmp_signed("<", value, ir.Constant(I64, -2**31))
+        self.halt_if(self.builder.or_(too_big, too_small),
+                     f"riba: the number read by sual {where} does not fit in dirham — the purse "
+                     "is too small, and the excess would be riba; execution is halted")
+        return self.builder.trunc(value, I32)
 
 
 def generate(tree) -> str:
