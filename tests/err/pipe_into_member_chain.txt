@@ -1,0 +1,11 @@
+assalamu alaikum
+diwan Counter yalla
+    inshallah dirham n
+    dua dirham add(dirham k) yalla
+        n := n + k
+        ameen n
+    khalas
+khalas
+inshallah Counter c := Counter(0)
+bismillah dirham y := 5 |> c.add
+ameen y

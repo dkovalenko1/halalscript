@@ -1,0 +1,16 @@
+assalamu alaikum
+# Inside a member dua, a stage named like a member dua of the same diwan calls
+# it on the object, as a plain call there would.
+diwan Account yalla
+    inshallah dirham balance
+    dua dirham fee(dirham amount) yalla
+        ameen amount + 2
+    khalas
+    dua dirham withdraw(dirham amount) yalla
+        balance := balance - (amount |> fee)
+        ameen balance
+    khalas
+khalas
+inshallah Account a := Account(100)
+bayan(a.withdraw(10))
+ameen a.balance

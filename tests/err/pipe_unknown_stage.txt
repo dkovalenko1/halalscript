@@ -1,0 +1,6 @@
+assalamu alaikum
+dua dirham double(dirham x) yalla
+    ameen x * 2
+khalas
+bismillah dirham y := 5 |> double |> triple
+ameen y

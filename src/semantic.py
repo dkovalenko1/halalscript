@@ -413,7 +413,9 @@ class SemanticChecker:
         else:
             node.function = self.duas.get(node.name)
         if node.function is None:
-            self.fail(node, f"unknown dua '{node.name}' — no such supplication was ever composed")
+            where = f"pipe stage {node.stage}: " if node.stage else ""
+            self.fail(node, f"{where}unknown dua '{node.name}' — no such supplication was ever "
+                            "composed")
         return self.check_arguments(node)
 
     def visit_member_call(self, node):

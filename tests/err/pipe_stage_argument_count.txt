@@ -1,0 +1,9 @@
+assalamu alaikum
+dua dirham add(dirham x, dirham y) yalla
+    ameen x + y
+khalas
+dua dirham double(dirham x) yalla
+    ameen x * 2
+khalas
+bismillah dirham y := 1 |> add(2) |> double(3)
+ameen y

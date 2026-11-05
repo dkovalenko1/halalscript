@@ -1,0 +1,9 @@
+assalamu alaikum
+dua fatwa big(dirham x) yalla
+    ameen x > 10
+khalas
+dua dirham double(dirham x) yalla
+    ameen x * 2
+khalas
+bismillah dirham y := 5 |> double |> big |> double
+ameen y

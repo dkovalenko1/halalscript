@@ -490,6 +490,10 @@ class Parser:
             if token.text in self.diwans:
                 raise self.error(f"pipe stage {stage} names the diwan '{token.text}' — a value "
                                  "is piped into a dua, not into a register", token)
+            if self.peek_kind() == ".":
+                raise self.error(f"pipe stage {stage} must name a dua, not a chain through "
+                                 f"'{token.text}' — a value is piped into a supplication, not "
+                                 "into a register's duty")
             args = self.parse_arguments() if self.peek_kind() == "(" else []
             node = CallNode(token.line, token.column, token.text, [node, *args], stage)
         return node
