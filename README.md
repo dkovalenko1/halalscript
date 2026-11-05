@@ -88,6 +88,30 @@ stdout, writes no output file, and exits with code 1:
 compilation error: line 3:17: 'yalla' is never answered by 'khalas' — a journey begun was not concluded
 ```
 
+## The program: a zakat ledger
+
+[`programs/zakat_ledger.txt`](programs/zakat_ledger.txt) asks for your savings
+one amount per line, until you enter 0, and refuses a negative amount with a
+message. Then it prints how many amounts it recorded, their total, and the
+zakat due on them: nothing below the nisab of 200, one fortieth from it up.
+The amounts go into a `Purse` diwan through its member dua `add`. A `ma_dama`
+loop asks for the next amount until it reads 0, and the dua `share` divides
+with a second `ma_dama` loop, since the language has no `/`. The zakat is one
+pipe: `purse.total |> zakatable |> share(1, 40)`. To build it into a native
+program and run the two recorded sessions:
+
+```sh
+python compiler.py programs/zakat_ledger.txt zakat_ledger.ll
+llc -filetype=obj zakat_ledger.ll -o zakat_ledger.o
+clang zakat_ledger.o -o zakat_ledger
+./zakat_ledger < programs/zakat_ledger.due.in        # prints programs/zakat_ledger.due.expected
+./zakat_ledger < programs/zakat_ledger.exempt.in     # prints programs/zakat_ledger.exempt.expected
+```
+
+Build it on the machine that runs it: the `.ll` file names the target of the
+machine that compiled it. `./zakat_ledger` alone asks for the amounts on the
+terminal. `check.py` runs both sessions under `lli`.
+
 ## VS Code extension
 
 [`vscode-halalscript/`](vscode-halalscript/README.md) adds HalalScript support to
@@ -95,7 +119,8 @@ VS Code for `.halal` files: highlighting, the compiler's syntax and semantic
 errors underlined as you type, keyword rulings and signatures on hover,
 completion (after `t.purse.`, the fields and member duas of that diwan),
 snippets, `yalla`/`khalas` bracket matching, Eastern Arabic digit conversion, a
-syntax-tree viewer, and a command that runs the program in a terminal.
+syntax-tree viewer, and a command that runs the program in a terminal. It knows
+the stage 2 language: its bundled compiler does not accept loops or pipes yet.
 
 ```sh
 cd vscode-halalscript && npm install && npm run package
@@ -121,7 +146,7 @@ run. Every program in `tests/opt` must print its `.ast` file with
 `--optimize`. Each recorded session of a program in `programs/`
 (`NAME.SESSION.in`) must print exactly `NAME.SESSION.expected`. It prints a
 PASS/FAIL table, lists the failed tests, and exits non-zero if any test fails.
-There are 44 valid, 104 invalid and 7 optimizer programs, each named after what
+There are 47 valid, 109 invalid and 7 optimizer programs, each named after what
 it covers. With `--optimize`, `check.py` compiles every test that way and skips
 the `.ast` files of `tests/ok`, which hold the tree before the optimizer.
 
@@ -248,6 +273,7 @@ ameen a
 | `+ - *` | arithmetic; `*` binds tighter, equal levels group left to right |
 | `==` `!=` | comparison; at most one per expression, weaker than arithmetic |
 | `<` `<=` `>` `>=` | ordering of dirhams and dinars, at the level of `==` |
+| `\|>` | pipe: `x \|> f` is `f(x)`; binds loosest of all |
 | `la` | logical not (*la*, "no"); binds tightest: `la a == b` is `(la a) == b` |
 | `( )` | grouping |
 
@@ -401,6 +427,104 @@ adds 1 only when the result fits, and its `br label %"for.cond"` is the back
 edge that makes the loop. A `ma_dama` loop has the same shape with three
 blocks: `while.cond`, `while.body`, whose last `br` back to `while.cond` is the
 back edge, and `while.end`.
+
+### Pipes: `|>`
+
+`x |> f` calls the dua `f` with `x`, and `x |> f |> g(a)` is `g(f(x), a)`: each
+stage is a global dua, called with the value of the stages before it as its
+first argument and the arguments in its brackets after that. A pipe reads in
+the order things happen, where nested calls read inside out.
+
+The rules:
+
+- A stage is the name of a dua, with or without brackets. A diwan, a variable
+  or a chain such as `c.add` cannot be a stage. Inside a member dua, a stage
+  named like a member dua of the same diwan calls it on the object, as a plain
+  call there would.
+- `|>` binds loosest of all: `2 + 3 |> f` pipes 5, and a comparison of a pipe
+  needs brackets, `(x |> f) == 3`.
+- The stages run left to right. The value is computed first, then the stage
+  that takes it, then the next one; a stage's own arguments come after its
+  piped value.
+- The type of each stage's answer is checked against the first parameter of
+  the next stage, with the usual widening of a dirham into a dinar. An error
+  names the stage that does not fit, counted from 1, and the stage before it:
+  `pipe stage 3 'double' does not fit: it takes dirham as 'x', but stage 2 'big'
+  answers with fatwa`. A wrong number of arguments or an unknown dua names its
+  stage too.
+- A pipe stands wherever a value does: in a declaration, an assignment, a
+  condition, `bayan`, `ameen` and the arguments of a call.
+
+> **Official Ruling.** A value is handed from one supplication to the next, as
+> a petition passes from clerk to clerk. Each clerk accepts only the coin he
+> asked for; a petition that does not fit is returned with the name of the
+> clerk who refused it.
+
+```
+assalamu alaikum
+dua dirham add(dirham x, dirham y) yalla
+    ameen x + y
+khalas
+dua dirham double(dirham x) yalla
+    ameen x * 2
+khalas
+# double(add(sual(), 3)), read left to right
+ameen sual() |> add(3) |> double
+```
+
+```
+assalamu alaikum
+diwan Point yalla
+    bismillah dirham x
+    bismillah dirham y
+khalas
+dua Point mirror(Point p) yalla
+    ameen Point(p.y, p.x)
+khalas
+dua fatwa on_axis(Point p) yalla
+    ameen p.x == 0
+khalas
+# An object flows through a pipe like any value.
+istikhara Point(0, 5) |> mirror |> on_axis yalla
+    bayan("on the axis")
+khalas
+qadarallah yalla
+    bayan("off the axis")
+khalas
+ameen 0
+```
+
+The parser turns a pipe into calls: each stage is a `Call` with its stage
+number, so the semantic pass, the optimizer and the code generator see an
+ordinary call, and only the error messages speak of stages. In `--ast`:
+
+```
+Decl zakat dinar bismillah (immutable)
+  Call share (3 arguments, pipe stage 2)
+    Call zakatable (1 argument, pipe stage 1)
+      Field purse.total
+    Int 1
+    Int 40
+```
+
+**The IR of a pipe.** The excerpt is `output.ll` for the zakat line of
+[the program](#the-program-a-zakat-ledger),
+`bismillah dinar zakat := purse.total |> zakatable |> share(1, 40)`:
+
+```llvm
+  %".110" = getelementptr inbounds %"Purse", %"Purse"* %"purse", i32 0, i32 0
+  %".111" = load i64, i64* %".110"
+  %".112" = call i64 @"hs.zakatable"(i64 %".111")
+  %".113" = call i64 @"hs.share"(i64 %".112", i32 1, i32 40)
+  store i64 %".113", i64* %"zakat"
+```
+
+The `getelementptr` reaches field 0 of the object `purse`, its `total`, and
+the `load` reads the value the pipe starts from. Each stage is one `call`, in
+the order of the stages, and the register one call returns is the first
+argument of the next: `%".112"`, the answer of `zakatable`, goes into `share`
+before its own arguments 1 and 40. The last answer is stored in the slot of
+`zakat`; there is no trace of the pipe left in the IR, only two calls.
 
 ### Eastern Arabic numerals
 
@@ -628,6 +752,7 @@ literals; the exit line of a fatwa answer uses them too.
 | program and diwan order | every program with a diwan | `dua_after_statement`, `diwan_after_dua`, `dua_inside_dua`, `field_after_member_dua`, `member_dua_before_field` |
 | types and declarations (stage 1 rules) | `scope_shadowing`, `decl_all_kinds`, `long_expression` | `undeclared_name`, `redeclared_in_block`, `variable_named_like_dua`, `member_dua_named_like_diwan`, `assign_bismillah`, `assign_wallahi`, `narrowing_dinar_to_dirham`, `compare_fatwa_with_dirham`, `arithmetic_on_fatwa`, `condition_not_fatwa`, `la_on_dirham` |
 | loops | `loop_nested_kafa`, `loop_range_edges`, `loop_ameen_inside` | `loop_kafa_outside`, `loop_assign_counter`, `loop_counter_after_loop`, `loop_statement_after_kafa`, `loop_condition_not_fatwa` |
+| pipes | `pipe_chain_arguments`, `pipe_order_and_places`, `pipe_member_stage` | `pipe_stage_wrong_type`, `pipe_source_wrong_type`, `pipe_stage_argument_count`, `pipe_into_member_chain`, `pipe_unknown_stage` |
 | riba | `wallahi_folding`, `runtime_riba`, `read_beyond_dirham`, `literal_i64_max` | `wallahi_fold_overflow`, `wallahi_runtime_value`, `literal_too_big_for_dirham`, `literal_beyond_i64` |
 
 ### Names and reserved words
@@ -695,6 +820,9 @@ Program
 
 The loops print as `MaDama` (its condition, then its block), `Kull i dirham`
 (the first value, the last value, then the block) and `Kafa`.
+
+A stage of a pipe prints as a `Call` with its number: `Call share (3
+arguments, pipe stage 2)`.
 
 `Field p.x` is a field chain; `MemberCall ... on c.center` is a chain that ends
 in a member call; `Call` is a call of a global dua, or of a member dua of the
