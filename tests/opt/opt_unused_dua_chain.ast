@@ -10,11 +10,20 @@ Program
             Var n
         Ameen
           Var coins
-  Dua used(dirham x) -> dirham
+  Dua helper(dirham x) -> dirham
     Param x dirham (immutable)
     Block yalla
       Ameen
         Var x
+  Dua used(dirham x) -> dirham
+    Param x dirham (immutable)
+    Block yalla
+      Ameen
+        BinOp +
+          Call helper (1 argument)
+            Var x
+          Call helper (1 argument)
+            Int 0
   Decl w Wallet inshallah (mutable)
     New Wallet (1 value)
       Int 0

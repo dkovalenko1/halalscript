@@ -19,8 +19,12 @@ khalas
 dua dirham top(dirham x) yalla
     ameen middle(x) + 3
 khalas
-dua dirham used(dirham x) yalla
+# helper is reached only through used, which the program calls: both stay.
+dua dirham helper(dirham x) yalla
     ameen x
+khalas
+dua dirham used(dirham x) yalla
+    ameen helper(x) + helper(0)
 khalas
 inshallah Wallet w := Wallet(0)
 bismillah dirham a := w.add(2)
