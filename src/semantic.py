@@ -289,6 +289,13 @@ class SemanticChecker:
         if node.else_block:
             node.else_block.accept(self)
 
+    def visit_while(self, node):
+        condition = node.condition.accept(self)
+        if condition != "fatwa":
+            self.fail(node, f"the condition of 'ma_dama' must be fatwa, got {condition} — "
+                            "'as long as' needs a ruling, not a coin")
+        node.body.accept(self)
+
     def visit_exit(self, node):
         have = node.value.accept(self)
         if self.function is None:
@@ -318,6 +325,11 @@ class SemanticChecker:
                     self.fail(node, f"cannot apply '{node.op}' to {operand} — {what} are not "
                                     "summed")
             node.type = "dinar" if "dinar" in (left, right) else "dirham"
+        elif node.op not in ("==", "!="):
+            if not (left in INTEGERS and right in INTEGERS):
+                self.fail(node, f"cannot order {left} and {right} with '{node.op}' — only coins "
+                                "are weighed against each other")
+            node.type = "fatwa"
         else:
             if not (left in INTEGERS and right in INTEGERS) and not (left == right == "fatwa"):
                 ornament = ("a ruling is not a coin" if "fatwa" in (left, right)
@@ -395,17 +407,31 @@ class SemanticChecker:
 
     def check_arguments(self, node):
         params = node.function.params
+        stage = getattr(node, "stage", None)
         if len(node.args) != len(params):
             verb = "is" if len(node.args) == 1 else "are"
-            self.fail(node, f"dua '{node.name}' takes {count(len(params), 'argument')}, but "
-                            f"{len(node.args)} {verb} given — a supplication is offered with "
+            where = f"pipe stage {stage}: " if stage else ""
+            self.fail(node, f"{where}dua '{node.name}' takes {count(len(params), 'argument')}, "
+                            f"but {len(node.args)} {verb} given — a supplication is offered with "
                             "exactly what it asks")
         for number, (arg, param) in enumerate(zip(node.args, params), start=1):
             arg.accept(self)
+            if stage and number == 1:
+                self.check_piped(node, arg, param)
             self.check_assignable(arg, param.type_name, arg,
                                   f"pass argument {number} of '{node.name}' as '{param.name}'")
         node.type = node.function.result_type
         return node.type
+
+    def check_piped(self, node, arg, param):
+        """The value a pipe hands to stage n must fit the first parameter of its dua."""
+        if assignable(arg.type, param.type_name):
+            return
+        source = (f"stage {arg.stage} '{arg.name}' answers with"
+                  if getattr(arg, "stage", None) else "the value piped in is")
+        self.fail(node, f"pipe stage {node.stage} '{node.name}' does not fit: it takes "
+                        f"{param.type_name} as '{param.name}', but {source} {arg.type} — the "
+                        "pipe joins only what fits")
 
     def visit_new(self, node):
         fields = self.diwans[node.type_name].fields

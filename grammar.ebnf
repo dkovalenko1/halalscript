@@ -1,4 +1,4 @@
-(* HalalScript grammar, stage 2.
+(* HalalScript grammar, stage 3.
 
    Notation: name ::= right side ; | separates alternatives; [ x ] is
    optional; { x } is zero or more; quoted words are terminals spelled exactly
@@ -19,6 +19,7 @@ greeting    ::= "assalamu" "alaikum" NL ;
 statement   ::= declaration NL
               | assignment NL
               | if_stmt
+              | while_stmt
               | print NL ;
 
 declaration ::= decl_kind type IDENT ":=" expr ;
@@ -34,6 +35,9 @@ type        ::= "dirham"                      (* i32  *)
 assignment  ::= IDENT { "." IDENT } ":=" expr ;
 
 if_stmt     ::= "istikhara" expr block [ "qadarallah" block ] ;
+
+(* ma_dama, "as long as": the block runs again while the fatwa holds. *)
+while_stmt  ::= "ma_dama" expr block ;
 
 (* A block is closed in the style it was opened in. *)
 block       ::= "yalla" NL block_body "khalas" NL
@@ -63,7 +67,12 @@ param       ::= type IDENT ;
 
 (* ---------- expressions ---------- *)
 
-expr        ::= arith [ ( "==" | "!=" ) arith ] ;   (* at most one comparison *)
+(* x |> f |> g(a) is g(f(x), a): each stage calls a dua with the value of the
+   stages before it as its first argument. The pipe binds loosest of all. *)
+expr        ::= comparison { "|>" stage } ;
+stage       ::= IDENT [ arguments ] ;              (* a global dua *)
+comparison  ::= arith [ compare_op arith ] ;      (* at most one comparison *)
+compare_op  ::= "==" | "!=" | "<" | "<=" | ">" | ">=" ;   (* < <= > >= order integers *)
 arith       ::= term { ( "+" | "-" ) term } ;       (* left associative *)
 term        ::= unary { "*" unary } ;               (* left associative *)
 unary       ::= "la" unary | primary ;
@@ -95,6 +104,4 @@ whitespace   ::= " " | ? tab ? | ? carriage return ? ;   (* discarded *)
 
 (* Reserved words: wallahi bismillah inshallah dirham dinar fatwa halal haram
    istikhara qadarallah yalla khalas ameen la assalamu alaikum ma_dama
-   diwan dua sual bayan.
-   ma_dama ("as long as", while) is reserved for a later stage and appears in
-   no rule yet. *)
+   diwan dua sual bayan. *)

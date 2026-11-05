@@ -14,7 +14,7 @@ from .ast_nodes import (
     AssignNode, BinOpNode, BlockNode, BoolLiteralNode, CallNode, DeclNode, DiwanNode, DuaNode,
     ExitNode, ExprNode, FieldAccessNode, FieldDeclNode, IfNode, IntLiteralNode, MemberCallNode,
     NewNode, NotNode, ParamNode, PrintNode, ProgramNode, ReadNode, StmtNode, StringNode, VarNode,
-    chain,
+    WhileNode, chain,
 )
 from .errors import CompileError
 from .lexer import KEYWORDS, Token
@@ -24,7 +24,8 @@ FIELD_KINDS = ("bismillah", "inshallah")
 TYPES = ("dirham", "dinar", "fatwa")
 OPENERS = {"yalla": "khalas", "{": "}"}  # opener -> the closer that answers it
 CLOSERS = {"khalas": "yalla", "}": "{"}
-OPERATORS = (":=", "==", "!=", "+", "-", "*")
+COMPARISONS = ("==", "!=", "<", "<=", ">", ">=")
+OPERATORS = (":=", "+", "-", "*", "|>", *COMPARISONS)
 RESERVED = frozenset(KEYWORDS.values())
 
 EMPTY_INVOCATION = "a name invoked over nothing is an empty invocation"
@@ -124,14 +125,16 @@ class Parser:
         return first
 
     def parse_statement(self) -> StmtNode:
-        """statement ::= declaration NL | assignment NL | if_stmt | print NL
+        """statement ::= declaration NL | assignment NL | if_stmt | while_stmt | print NL
 
-        Consume one line, or for istikhara every line up to the end of its last block.
+        Consume one line, or for istikhara and ma_dama every line up to the end of their blocks.
         """
         token = self.next_line()[0]
         kind = token.kind
         if kind == "istikhara":
             return self.parse_if()
+        if kind == "ma_dama":
+            return self.parse_while()
         if kind in DECL_KINDS:
             statement = self.parse_declaration()
         elif kind == "bayan":
@@ -152,8 +155,9 @@ class Parser:
             message = (f"'{kind}' without a matching '{CLOSERS[kind]}' — one cannot finish what "
                        "was never started")
         elif kind in OPENERS:
-            message = (f"'{kind}' may only open the block of 'istikhara', 'qadarallah', 'dua' or "
-                       "'diwan', at the end of its line — a journey needs a reason to begin")
+            message = (f"'{kind}' may only open the block of 'istikhara', 'qadarallah', 'ma_dama', "
+                       "'dua' or 'diwan', at the end of its line — a journey needs a reason to "
+                       "begin")
         elif kind == "diwan":
             message = ("a 'diwan' is declared at the top of the program, before every dua and "
                        "statement — the registers are drawn up before the business begins")
@@ -165,8 +169,6 @@ class Parser:
                        f"'{kind}' — state the degree of certainty before the coin")
         elif kind == "assalamu":
             message = "the greeting is spoken once, on entering — not in the middle of the visit"
-        elif kind == "ma_dama":
-            message = "'ma_dama' is reserved for a later stage — its time has not yet come"
         else:
             message = (f"a statement cannot begin with '{token.text}' — begin with a declaration, "
                        "a name, 'istikhara' or 'ameen', as the scholars intended")
@@ -366,6 +368,13 @@ class Parser:
             else_block = self.parse_block("qadarallah")
         return IfNode(keyword.line, keyword.column, condition, then_block, else_block)
 
+    def parse_while(self) -> WhileNode:  # while_stmt ::= "ma_dama" expr block
+        keyword = self.eat()
+        if self.peek() is None or self.peek_kind() in OPENERS:
+            raise self.error("expected a condition after 'ma_dama' — 'as long as' what?")
+        condition = self.parse_expr()
+        return WhileNode(keyword.line, keyword.column, condition, self.parse_block("ma_dama"))
+
     def parse_block(self, owner: str) -> BlockNode:
         """block ::= "yalla" NL block_body "khalas" NL | "{" NL block_body "}" NL
 
@@ -374,7 +383,7 @@ class Parser:
         """
         opener = self.peek()
         if opener is None or opener.kind not in OPENERS:
-            if opener is not None and opener.kind in ("==", "!="):
+            if opener is not None and opener.kind in COMPARISONS:
                 raise self.chained_comparison()
             got = f", got '{opener.text}'" if opener else ""
             raise self.error(f"expected 'yalla' or '{{' after '{owner}'{got} — guidance sought must "
@@ -431,12 +440,33 @@ class Parser:
 
     # ---------- expressions ----------
 
-    def parse_expr(self) -> ExprNode:  # expr ::= arith [ ( "==" | "!=" ) arith ]
+    def parse_expr(self) -> ExprNode:  # expr ::= comparison { "|>" stage }
+        """x |> f |> g(a) becomes g(f(x), a): each stage is a call whose first argument
+        is the value of the stages before it."""
+        node = self.parse_comparison()
+        stage = 0
+        while self.peek_kind() == "|>":
+            self.eat()
+            stage += 1
+            token = self.peek()
+            if token is None or token.kind != "ident":
+                got = f"got '{token.text}'" if token else "found end of line"
+                raise self.error(f"expected the name of a dua after '|>' in pipe stage {stage}, "
+                                 f"{got} — a value is handed to someone, not to nothing")
+            self.eat()
+            if token.text in self.diwans:
+                raise self.error(f"pipe stage {stage} names the diwan '{token.text}' — a value "
+                                 "is piped into a dua, not into a register", token)
+            args = self.parse_arguments() if self.peek_kind() == "(" else []
+            node = CallNode(token.line, token.column, token.text, [node, *args], stage)
+        return node
+
+    def parse_comparison(self) -> ExprNode:  # comparison ::= arith [ compare_op arith ]
         node = self.parse_arith()
-        if self.peek_kind() in ("==", "!="):
+        if self.peek_kind() in COMPARISONS:
             op = self.eat()
             node = BinOpNode(op.line, op.column, op.text, node, self.parse_arith())
-            if self.peek_kind() in ("==", "!="):
+            if self.peek_kind() in COMPARISONS:
                 raise self.chained_comparison()
         return node
 

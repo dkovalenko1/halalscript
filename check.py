@@ -7,6 +7,9 @@ tests/ok/*.txt   must compile to .ll, run under lli, and print exactly the
 tests/err/*.txt  must be rejected: a non-zero exit code, nothing on stdout, no
                  output file, and stderr equal to the .expected file
 examples/*.halal must compile and run
+programs/NAME.txt is compiled once and run once per recorded session:
+                 NAME.SESSION.in is the input, and the output must equal
+                 NAME.SESSION.expected
 
 Run it with the Python that has llvmlite installed. The interpreter is lli on
 PATH, or the one LLI=/path/to/lli names.
@@ -36,13 +39,15 @@ def compiler(*args) -> subprocess.CompletedProcess:
     return run([sys.executable, "-B", str(COMPILER), *args])
 
 
-def compile_and_run(source: Path, work: Path, lli: str) -> tuple[str | None, str]:
-    """(reason, stdout): reason is None when the program compiled and ran."""
+def compile_and_run(source: Path, work: Path, lli: str,
+                    stdin_file: Path | None = None) -> tuple[str | None, str]:
+    """(reason, stdout): reason is None when the program compiled and ran.
+    The input is stdin_file, or NAME.in next to the source when it exists."""
     output = work / (source.stem + ".ll")
     result = compiler(str(source), str(output))
     if result.returncode != 0:
         return "rejected: " + result.stderr.strip(), ""
-    stdin_file = source.with_suffix(".in")
+    stdin_file = stdin_file or source.with_suffix(".in")
     stdin = stdin_file.read_text(encoding="utf-8") if stdin_file.exists() else None
     executed = run([lli, str(output)], stdin)
     if executed.stderr:
@@ -89,6 +94,18 @@ def check_example(source: Path, work: Path, lli: str) -> str | None:
     return compile_and_run(source, work, lli)[0]
 
 
+def check_session(source: Path, session: Path, work: Path, lli: str) -> str | None:
+    expected = session.with_suffix(".expected")
+    if not expected.exists():
+        return f"missing {expected.name}"
+    reason, stdout = compile_and_run(source, work, lli, session)
+    if reason:
+        return reason
+    if stdout != expected.read_text(encoding="utf-8"):
+        return f"output differs from {expected.name}"
+    return None
+
+
 def main() -> int:
     lli = find_lli()
     if lli is None:
@@ -104,6 +121,14 @@ def main() -> int:
             for source in sorted(folder.glob(pattern)):
                 reason = check(source, work, lli)
                 rows.append((suite, source.stem, "PASS" if reason is None else "FAIL", reason or ""))
+        for source in sorted((ROOT / "programs").glob("*.txt")):
+            sessions = sorted(source.parent.glob(source.stem + ".*.in"))
+            if not sessions:
+                rows.append(("programs", source.stem, "FAIL", "no recorded session"))
+            for session in sessions:
+                reason = check_session(source, session, work, lli)
+                rows.append(("programs", session.stem, "PASS" if reason is None else "FAIL",
+                             reason or ""))
 
     widths = [max(len(row[i]) for row in rows + [("suite", "test", "result", "")]) for i in range(3)]
     for row in [("suite", "test", "result", "reason"),

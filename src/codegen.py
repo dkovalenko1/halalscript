@@ -192,6 +192,21 @@ class CodeGen:
                 self.builder.branch(merge_bb)
         self.builder.position_at_end(merge_bb)
 
+    def visit_while(self, node):
+        """cond -> body -> back to cond, or out to end: the branch at the end of the body
+        is the back edge."""
+        cond_bb = self.function.append_basic_block("while.cond")
+        body_bb = self.function.append_basic_block("while.body")
+        end_bb = self.function.append_basic_block("while.end")
+        self.builder.branch(cond_bb)
+        self.builder.position_at_end(cond_bb)
+        self.builder.cbranch(node.condition.accept(self), body_bb, end_bb)
+        self.builder.position_at_end(body_bb)
+        node.body.accept(self)
+        if not self.builder.block.is_terminated:  # a body that ends with ameen has its ret
+            self.builder.branch(cond_bb)
+        self.builder.position_at_end(end_bb)
+
     def visit_exit(self, node):
         value = node.value.accept(self)
         if self.result_type is not None:  # inside a dua, ameen returns the result
