@@ -1,0 +1,171 @@
+AI USAGE DISCLOSURE: HalalScript, Project Stage 3
+=================================================
+
+Tool: Claude Code (model Claude Opus 5.5), run through the T3 Code desktop app,
+with access to my local folder containing the course PDFs (practices 1 to 9,
+the stage 1, 2 and 3 tasks), my practice repository
+languages-and-compilers-design, and this repository. It ran the tests on my
+Mac and on a Linux virtual machine (Ubuntu 24.04, LLVM 18) that matches the
+course platform.
+
+Transcript: the whole stage was done in one Claude Code session on
+2026-11-05. The session has no public link, so the prompts are reproduced
+verbatim below.
+
+The AI wrote the code, the tests and most of the text in this stage. I chose
+the features and set the rules for the work, listed in section 3.
+
+
+1. PROMPTS (verbatim, in order)
+-------------------------------
+
+Prompt 1 (with w10-project-stage3.pdf attached):
+
+  Here is the new stage that we need to complete. Explain what we are doing
+  and what the tasks are.
+
+Prompt 2:
+
+  Great. Yes, let's go with the loops, but I also want to add piping. We will
+  take 2 of them. Now you can create a branch and start with a minimal version
+  of the Task 3 program that satisfies the stage requirements.
+
+Prompt 3:
+
+  Commit as you go. Start by implementing the loops and the optimizer; then we
+  will move on to the piping. When writing tests, keep the suite clean: each
+  test brings value and catches some unexpected behaviour; they should cover
+  must-have functionality and edge cases; no slop that is always green.
+
+Prompt 4:
+
+  Great, now let's add the remaining things for the piping and update the
+  READE according to the Stage. After that, update ai_usage_2 to *_3 and
+  replace the file content with our new entry. Keep the section I should fill
+  in myself blank. We will implement the VSCode extension later, not for
+  grading. Also, compare new features we added against the course
+  practices/repo, in order to check whether we violated anything from previous
+  rulings.
+
+
+2. WHAT THE AI PRODUCED, PART BY PART
+-------------------------------------
+
+Reading the task (prompt 1). The AI summarised the stage: the three tasks, the
+grading, the AI disclosure rule, the defence and the submission steps. It
+pointed out that the draft pull request due on 30 October had not been opened
+and that the deadline was the same day. It recommended loops as the feature,
+because the stage 1 grammar had reserved ma_dama for a while loop and because
+an interactive program needs a loop to read a list of values.
+
+Task 3, the first program (prompt 2). The AI created the branch stage3 from
+stage2 and wrote programs/zakat_ledger.txt: a Purse diwan with the member dua
+add, a ma_dama loop that reads amounts until 0, the dua share that divides by
+repeated subtraction (the language has no '/'), and the pipe
+purse.total |> zakatable |> share(1, 40). To make it run, it added to the
+compiler, before I asked for the rest of the features: the ma_dama loop, the
+|> pipe, and the comparisons < <= > >=, which the language did not have. It
+explained that a loop with only == and != can only stop at one exact value.
+It recorded two sessions (zakat_ledger.due and zakat_ledger.exempt), extended
+check.py to run every session of every program in programs/, and built the
+program into a native binary with llc and clang on the Linux machine. Taken as
+generated.
+
+Task 1, loops (prompt 3). The AI added kull dirham i := a ila b, an inclusive
+range whose bounds are computed once, and kafa, which leaves the innermost
+loop. It chose the keywords so that their Arabic meaning matches the role, as
+the stage 1 design rules require (kull "each", ila "up to", kafa "enough"),
+and checked that no existing program used them as names. The counter cannot
+be assigned and lives only in the loop; the loop stops before adding 1 at the
+last value, so a range up to the largest dirham does not overflow. It added 3
+valid and 5 invalid loop tests, each aimed at one way the lowering could go
+wrong (kafa leaving only the inner loop, the range edges, ameen inside a loop,
+kafa outside a loop, the counter assigned or used after the loop). Taken as
+generated.
+
+Task 2, the optimizer (prompt 3). The AI wrote src/optimizer.py and the
+--optimize flag. Unused duas are found by walking the calls from the top
+level, so duas that only call each other are removed too. Unused variables are
+counted per declaration through the links the semantic pass already stored.
+Inlining replaces a global dua called once with its body: parameters become
+declarations named f.<param>, locals are renamed f.<name>, and the answer goes
+into f.ameen; a '.' cannot appear in a source name and ameen is reserved, so
+nothing collides. It leaves alone member duas, recursive duas, bodies with an
+ameen inside a block, calls in a ma_dama condition, and calls that come after
+another effect in the same statement. It added 7 programs to tests/opt and a
+--optimize mode to check.py that runs the whole suite with the flag.
+
+While testing the optimizer, the AI found and fixed two of its own mistakes:
+the answer variable was first named f.result, which collided with a local
+named result in a test; and one test claimed that a call would not be inlined
+when it rightly was. To check that the tests catch real faults, it broke each
+rule of the optimizer on purpose, one at a time, and confirmed that a test
+failed. One broken rule was not caught (a dua reached only through another
+dua), so it added that case to a test.
+
+Pipes (prompt 4). The AI added the pipe tests, 3 valid and 5 invalid: the
+arguments of a stage, precedence, widening between stages, the order in which
+stages run, an object flowing through a pipe, a stage inside a member dua, and
+the errors that name the stage that does not fit. It also improved two error
+messages so that they name the stage: a chain such as c.add used as a stage,
+and an unknown dua.
+
+README and grammar (prompts 3 and 4). grammar.ebnf has the rules for ma_dama,
+kull, kafa, the comparisons and the pipe. The README has the rules and two
+example programs for loops and for pipes, the IR excerpt of a kull loop and of
+a pipe with an explanation of each part, the optimizer's rules with the shapes
+it inlines and leaves alone, the IR before and after inlining one dua, the
+program's description with the llc and clang commands, and the new test
+suites. Every example program in the README was compiled and run.
+
+Comparison with the course (prompt 4). The AI compared the new features with
+practices 5, 8 and 9, my languages-and-compilers-design repository and the
+stage 1 DESIGN.md. It found one violation: the optimizer treated + - * as free
+of effects, but DESIGN.md makes overflow (riba) halt the program at runtime,
+so removing an unused overflowing value changed the output, against Practice
+9's rule "when in doubt, keep". It fixed this: a value with + - * now stays,
+except in a wallahi declaration, which the compiler already computed and
+checked. A new test checks that the unused overflowing value still halts the
+program with --optimize. The other differences from Practice 9 are on the safe
+side and are kept: unused member duas are removed too, and duas that call only
+each other are removed, which counting could not do.
+
+
+3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
+-------------------------------------------------------------
+
+- Two features instead of one: loops, as the AI proposed, and pipes, which I
+  added (prompt 2).
+- The program was built first, in its smallest form that runs, as the stage
+  recommends (prompt 2).
+- The work is committed in steps (prompt 3).
+- Every test must catch a real fault; no tests that are green whatever the
+  code does (prompt 3). This led to the deliberate fault check of the
+  optimizer tests.
+- The VS Code extension is not updated for stage 3; it is not graded
+  (prompt 4).
+- The new features were checked against the earlier course rulings
+  (prompt 4), which led to the fix of the optimizer's arithmetic rule.
+
+Taken as proposed by the AI: the keywords kull, ila and kafa, the spelling
+|> of the pipe, the inclusive range, the comparisons < <= > >=, the names of
+the variables the inliner creates, and the naming NAME.SESSION.in of the
+recorded sessions.
+
+
+4. HOW THE RESULT WAS CHECKED
+-----------------------------
+
+check.py passes all 168 rows on the Linux machine, both without and with
+--optimize: 47 valid programs run end to end under lli, 109 invalid programs
+give their exact error line, 7 optimizer programs print their tree and the
+same output with and without the flag, 3 examples run, and both sessions of
+the zakat ledger print their expected output. The zakat ledger was built into
+a native binary with the README's llc and clang commands, and both sessions
+printed exactly their expected output. The IR excerpts in the README were
+copied from the compiler's output.
+
+
+5. WHAT I UNDERSTOOD (in my own words)
+--------------------------------------
+
