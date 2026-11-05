@@ -169,3 +169,9 @@ copied from the compiler's output.
 5. WHAT I UNDERSTOOD (in my own words)
 --------------------------------------
 
+Loops are now basic blocks with a back edge from the end of the body to the condition. kull computes its bounds once and stops before the counter even could overflow, and kafa jumps to the end of loop.
+A pipe x |> f |> g(a) is turned into the plain calls like g(f(x), a), so the usual type checks apply and errors still name the stage.
+Optimizer removes unread variables and unreachable duas, but keeps anything that could print, read or halt on riba.
+The tests i forced to add checks that every program prints the same output with and without --optimize.
+I'll add VSCode extension later, after the deadline, since i still want to support latest functionality. It is not graded anyway.
+
