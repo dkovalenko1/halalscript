@@ -1,19 +1,16 @@
 assalamu alaikum
 # c is read only by b, and b only by a: removing a leaves b unread, then c.
 bismillah dirham c := 3
-bismillah dirham b := c * 2
-bismillah dirham a := b + 1
-# A counter read only by its own assignments is read by no one.
-inshallah dirham rounds := 0
-kull dirham i := 1 ila 3 yalla
-    rounds := rounds + i
-khalas
-# The inner total shadows the outer one and is never read: only it goes.
+bismillah dirham b := c
+bismillah fatwa a := b > 2
+# The inner total shadows the outer one and is never read: it goes with its
+# assignment, and the istikhara stays with the rest of its block.
 inshallah dirham total := 10
 istikhara total > 5 yalla
     inshallah dirham total := 0
-    total := total + 1
+    total := 1
     bayan(1)
 khalas
-wallahi dirham UNUSED := 5
+# A wallahi value was computed at compile time, so its arithmetic is gone too.
+wallahi dinar UNUSED := 5 * 1000
 ameen total

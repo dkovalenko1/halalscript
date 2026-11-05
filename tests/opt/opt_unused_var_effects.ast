@@ -27,7 +27,15 @@ Program
   Decl r dirham bismillah (immutable)
     Call quiet (1 argument)
       Int 5
-  Ameen
+  Bayan
     BinOp +
       Var q
       Var r
+  Decl big dirham bismillah (immutable)
+    Int 2000000000
+  Decl doubled dirham bismillah (immutable)
+    BinOp *
+      Var big
+      Int 2
+  Ameen
+    Int 0

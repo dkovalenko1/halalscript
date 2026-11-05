@@ -1,8 +1,4 @@
 Program
-  Kull i dirham
-    Int 1
-    Int 3
-    Block yalla
   Decl total dirham inshallah (mutable)
     Int 10
   Istikhara

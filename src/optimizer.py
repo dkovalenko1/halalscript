@@ -12,8 +12,8 @@ scopes and shadowing need no further care. The optimizer keeps those links
   inlining          a global dua called exactly once is replaced at its call
                     by its body (see inline_one)
   unused variables  a declaration nobody reads is removed with its
-                    assignments, unless one of their values calls a dua or
-                    sual(); repeated until nothing more is removed
+                    assignments, unless one of their values acts (see acts);
+                    repeated until nothing more is removed
 
 optimize() repeats the three until none of them changes the tree.
 """
@@ -54,9 +54,15 @@ def walk(node):
         yield from walk(child)
 
 
+def acts(node) -> bool:
+    """A node whose evaluation the program's output can show: a call or a sual(),
+    which may print or read, and + - *, which halt the program on riba."""
+    return (isinstance(node, (CallNode, MemberCallNode, ReadNode))
+            or isinstance(node, BinOpNode) and node.op in ARITHMETIC)
+
+
 def has_effect(expr) -> bool:
-    """A call or a sual() anywhere in the expression."""
-    return any(isinstance(n, (CallNode, MemberCallNode, ReadNode)) for n in walk(expr))
+    return any(acts(n) for n in walk(expr))
 
 
 def root(target):
@@ -107,14 +113,10 @@ def remove_unused_duas(program) -> bool:
 
 def count_uses(node, reads, writes):
     """reads: id of a declaration -> how many times it is read; writes: id -> its
-    assignments. A variable read only in its own assignments (x := x + 1) is not
-    read by anyone else, so those reads are not counted."""
+    assignments. The target of an assignment is not a read."""
     if isinstance(node, AssignNode):
-        decl = root(node.target).decl
-        writes[id(decl)].append(node)
-        for n in walk(node.value):
-            if isinstance(n, VarNode) and n.decl is not decl:
-                reads[id(n.decl)] += 1
+        writes[id(root(node.target).decl)].append(node)
+        count_uses(node.value, reads, writes)
         return
     if isinstance(node, VarNode):
         reads[id(node.decl)] += 1
@@ -129,8 +131,9 @@ def remove_unused_variables(program) -> bool:
         count_uses(program, reads, writes)
         doomed = set()
         for node in walk(program):
+            # A wallahi value was computed, and checked for riba, at compile time.
             if (isinstance(node, DeclNode) and not reads[id(node)]
-                    and not has_effect(node.init)
+                    and (node.kind == "wallahi" or not has_effect(node.init))
                     and not any(has_effect(a.value) for a in writes[id(node)])):
                 doomed.add(id(node))
                 doomed.update(id(a) for a in writes[id(node)])
@@ -181,8 +184,7 @@ def find_call(expressions, can_inline):
         for child in child_nodes(expr):
             if (found := visit(child)) is not None:
                 return found
-        if (isinstance(expr, (CallNode, MemberCallNode, ReadNode))
-                or isinstance(expr, BinOpNode) and expr.op in ARITHMETIC):
+        if acts(expr):
             clean = False
         return None
 

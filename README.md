@@ -740,13 +740,15 @@ different scopes are different variables, and shadowing needs no special care.
 
 **Unused variables.** A declaration that nobody reads is removed together with
 every assignment to it, again and again, so a variable read only by another
-removed variable goes next. A variable read only in its own assignments
-(`rounds := rounds + i`) counts as unread. A declaration stays if its value, or
-the value of any assignment to it, calls a dua or `sual()`: the language has no
-statement that would keep the call without the variable. Parameters and the
-counter of `kull` are never removed. Arithmetic counts as free of effects, so
-an overflow that only an unused variable would have hit no longer halts the
-program.
+removed variable goes next. A declaration stays if its value, or the value of
+any assignment to it, calls a dua, calls `sual()` or computes `+`, `-` or `*`.
+A call may print or read, and arithmetic may halt the program on riba, which
+the program's output shows; the language has no statement that would keep the
+computation without the variable. A `wallahi` value is the exception: the
+semantic pass computed it, and checked it for riba, at compile time. Parameters
+and the counter of `kull` are never removed. Counting has one limit: a variable
+that only feeds itself, `rounds := rounds + i`, is read by its own assignment,
+so it stays.
 
 **Unused duas.** The optimizer walks the calls from the top-level statements
 to the duas they call, and on to the duas those call. Every dua it does not
