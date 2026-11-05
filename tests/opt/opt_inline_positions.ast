@@ -1,0 +1,46 @@
+Program
+  Decl start.ameen dirham bismillah (immutable)
+    Int 2
+  Kull i dirham
+    Var start.ameen
+    Int 4
+    Block yalla
+      Decl triple.v dirham bismillah (immutable)
+        Var i
+      Decl triple.ameen dirham bismillah (immutable)
+        BinOp *
+          Var triple.v
+          Int 3
+      Bayan
+        Var triple.ameen
+  Decl uses_plus_one.v dirham bismillah (immutable)
+    Int 0
+  Decl plus_one.v dirham bismillah (immutable)
+    Var uses_plus_one.v
+  Decl plus_one.ameen dirham bismillah (immutable)
+    BinOp +
+      Var plus_one.v
+      Int 1
+  Decl uses_plus_one.w dirham bismillah (immutable)
+    Var plus_one.ameen
+  Decl uses_plus_one.ameen dirham bismillah (immutable)
+    Var uses_plus_one.w
+  Decl positive.v dirham bismillah (immutable)
+    Var uses_plus_one.ameen
+  Decl positive.ameen fatwa bismillah (immutable)
+    BinOp >
+      Var positive.v
+      Int 0
+  Istikhara
+    Var positive.ameen
+    Block yalla
+      Bayan
+        String "positive"
+  Decl finish.v dirham bismillah (immutable)
+    Int 7
+  Decl finish.ameen dirham bismillah (immutable)
+    BinOp *
+      Var finish.v
+      Int 10
+  Ameen
+    Var finish.ameen

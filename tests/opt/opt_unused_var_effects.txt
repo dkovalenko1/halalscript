@@ -1,0 +1,18 @@
+assalamu alaikum
+# A value that calls a dua or sual() is never dropped, so neither is its variable.
+dua dirham noisy(dirham v) yalla
+    bayan(v)
+    ameen v
+khalas
+dua dirham quiet(dirham v) yalla
+    bismillah dirham unused := v * 2
+    ameen v
+khalas
+bismillah dirham kept_by_call := noisy(1)
+bismillah dirham kept_by_read := sual()
+# Its first value is pure, but a later assignment calls a dua.
+inshallah dirham kept_by_assignment := 0
+kept_by_assignment := noisy(2)
+bismillah dirham q := quiet(4)
+bismillah dirham r := quiet(5)
+ameen q + r

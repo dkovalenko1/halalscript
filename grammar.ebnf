@@ -113,4 +113,4 @@ whitespace   ::= " " | ? tab ? | ? carriage return ? ;   (* discarded *)
 
 (* Reserved words: wallahi bismillah inshallah dirham dinar fatwa halal haram
    istikhara qadarallah yalla khalas ameen la assalamu alaikum ma_dama
-   kull ila kafa    diwan dua sual bayan. *)
+   kull ila kafa diwan dua sual bayan. *)

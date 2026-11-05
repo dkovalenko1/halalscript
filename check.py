@@ -10,6 +10,12 @@ examples/*.halal must compile and run
 programs/NAME.txt is compiled once and run once per recorded session:
                  NAME.SESSION.in is the input, and the output must equal
                  NAME.SESSION.expected
+tests/opt/*.txt  the optimizer's tests: --optimize --ast must print the .ast
+                 file, and the program must print the .expected file both
+                 with and without --optimize
+
+`python check.py --optimize` compiles every other test with --optimize too
+(and skips the .ast files of tests/ok, which hold the unoptimized tree).
 
 Run it with the Python that has llvmlite installed. The interpreter is lli on
 PATH, or the one LLI=/path/to/lli names.
@@ -26,6 +32,9 @@ import tempfile
 ROOT = Path(__file__).resolve().parent
 COMPILER = ROOT / "compiler.py"
 TESTS = ROOT / "tests"
+OPTIMIZE = "--optimize" in sys.argv[1:]
+
+
 def find_lli() -> str | None:
     return os.environ.get("LLI") or shutil.which("lli")
 
@@ -39,12 +48,12 @@ def compiler(*args) -> subprocess.CompletedProcess:
     return run([sys.executable, "-B", str(COMPILER), *args])
 
 
-def compile_and_run(source: Path, work: Path, lli: str,
-                    stdin_file: Path | None = None) -> tuple[str | None, str]:
+def compile_and_run(source: Path, work: Path, lli: str, stdin_file: Path | None = None,
+                    optimize: bool = OPTIMIZE) -> tuple[str | None, str]:
     """(reason, stdout): reason is None when the program compiled and ran.
     The input is stdin_file, or NAME.in next to the source when it exists."""
     output = work / (source.stem + ".ll")
-    result = compiler(str(source), str(output))
+    result = compiler(str(source), str(output), *(["--optimize"] if optimize else []))
     if result.returncode != 0:
         return "rejected: " + result.stderr.strip(), ""
     stdin_file = stdin_file or source.with_suffix(".in")
@@ -60,7 +69,7 @@ def check_ok(source: Path, work: Path, lli: str) -> str | None:
     if not expected.exists():
         return f"missing {expected.name}"
     tree = source.with_suffix(".ast")
-    if tree.exists():
+    if tree.exists() and not OPTIMIZE:
         result = compiler("--ast", str(source))
         if result.returncode != 0 or result.stdout != tree.read_text(encoding="utf-8"):
             return f"--ast differs from {tree.name}"
@@ -78,7 +87,7 @@ def check_err(source: Path, work: Path, lli: str) -> str | None:
     if not expected.exists():
         return f"missing {expected.name}"
     output = work / (source.stem + ".ll")
-    result = compiler(str(source), str(output))
+    result = compiler(str(source), str(output), *(["--optimize"] if OPTIMIZE else []))
     if result.returncode == 0:
         return "accepted, but must be rejected"
     if result.stdout:
@@ -92,6 +101,24 @@ def check_err(source: Path, work: Path, lli: str) -> str | None:
 
 def check_example(source: Path, work: Path, lli: str) -> str | None:
     return compile_and_run(source, work, lli)[0]
+
+
+def check_opt(source: Path, work: Path, lli: str) -> str | None:
+    expected, tree = source.with_suffix(".expected"), source.with_suffix(".ast")
+    for needed in (expected, tree):
+        if not needed.exists():
+            return f"missing {needed.name}"
+    result = compiler("--optimize", "--ast", str(source))
+    if result.returncode != 0 or result.stdout != tree.read_text(encoding="utf-8"):
+        return f"--optimize --ast differs from {tree.name}"
+    for optimize in (False, True):
+        reason, stdout = compile_and_run(source, work, lli, optimize=optimize)
+        flag = " with --optimize" if optimize else ""
+        if reason:
+            return reason + flag
+        if stdout != expected.read_text(encoding="utf-8"):
+            return f"output{flag} differs from {expected.name}"
+    return None
 
 
 def check_session(source: Path, session: Path, work: Path, lli: str) -> str | None:
@@ -114,6 +141,7 @@ def main() -> int:
     rows = []
     suites = [("ok", check_ok, TESTS / "ok", "*.txt"),
               ("err", check_err, TESTS / "err", "*.txt"),
+              ("opt", check_opt, TESTS / "opt", "*.txt"),
               ("examples", check_example, ROOT / "examples", "*.halal")]
     with tempfile.TemporaryDirectory() as directory:
         work = Path(directory)

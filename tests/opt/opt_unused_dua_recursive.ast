@@ -1,0 +1,23 @@
+Program
+  Dua fact(dirham n) -> dirham
+    Param n dirham (immutable)
+    Block yalla
+      Istikhara
+        BinOp <
+          Var n
+          Int 2
+        Block yalla
+          Ameen
+            Int 1
+      Ameen
+        BinOp *
+          Var n
+          Call fact (1 argument)
+            BinOp -
+              Var n
+              Int 1
+  Bayan
+    Call fact (1 argument)
+      Int 5
+  Ameen
+    Int 0

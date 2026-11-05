@@ -1,0 +1,81 @@
+Program
+  Diwan Counter yalla
+    Field n dirham inshallah (mutable)
+    Dua bump() -> dirham (member of Counter)
+      Block yalla
+        Assign n
+          BinOp +
+            Var n
+            Int 1
+        Ameen
+          Var n
+  Dua sign(dirham v) -> dirham
+    Param v dirham (immutable)
+    Block yalla
+      Istikhara
+        BinOp <
+          Var v
+          Int 0
+        Block yalla
+          Ameen
+            BinOp -
+              Int 0
+              Int 1
+      Ameen
+        Int 1
+  Dua loud(dirham v) -> dirham
+    Param v dirham (immutable)
+    Block yalla
+      Bayan
+        String "loud"
+      Ameen
+        Var v
+  Dua second(dirham v) -> dirham
+    Param v dirham (immutable)
+    Block yalla
+      Bayan
+        String "second"
+      Ameen
+        Var v
+  Dua below(dirham v, dirham limit) -> fatwa
+    Param v dirham (immutable)
+    Param limit dirham (immutable)
+    Block yalla
+      Ameen
+        BinOp <
+          Var v
+          Var limit
+  Decl c Counter inshallah (mutable)
+    New Counter (1 value)
+      Int 0
+  Decl bumped dirham bismillah (immutable)
+    MemberCall bump on c (0 arguments)
+  Bayan
+    Call sign (1 argument)
+      BinOp -
+        Int 0
+        Int 5
+  Bayan
+    BinOp +
+      Call loud (1 argument)
+        Int 1
+      Call second (1 argument)
+        Int 2
+  Decl again dirham bismillah (immutable)
+    Call loud (1 argument)
+      Int 3
+  Decl i dirham inshallah (mutable)
+    Int 0
+  MaDama
+    Call below (2 arguments)
+      Var i
+      Int 3
+    Block yalla
+      Assign i
+        BinOp +
+          Var i
+          Int 1
+  Ameen
+    BinOp +
+      Var i
+      Var bumped

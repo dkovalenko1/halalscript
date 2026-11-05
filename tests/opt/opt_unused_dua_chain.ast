@@ -1,0 +1,31 @@
+Program
+  Diwan Wallet yalla
+    Field coins dirham inshallah (mutable)
+    Dua add(dirham n) -> dirham (member of Wallet)
+      Param n dirham (immutable)
+      Block yalla
+        Assign coins
+          BinOp +
+            Var coins
+            Var n
+        Ameen
+          Var coins
+  Dua used(dirham x) -> dirham
+    Param x dirham (immutable)
+    Block yalla
+      Ameen
+        Var x
+  Decl w Wallet inshallah (mutable)
+    New Wallet (1 value)
+      Int 0
+  Decl a dirham bismillah (immutable)
+    MemberCall add on w (1 argument)
+      Int 2
+  Decl b dirham bismillah (immutable)
+    Call used (1 argument)
+      Var a
+  Decl c dirham bismillah (immutable)
+    Call used (1 argument)
+      Var b
+  Ameen
+    Var c
