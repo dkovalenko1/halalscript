@@ -21,7 +21,7 @@ KEYWORDS = {
         "dirham", "dinar", "fatwa",
         "halal", "haram",
         "istikhara", "qadarallah", "yalla", "khalas", "ameen",
-        "la", "assalamu", "alaikum", "ma_dama",
+        "la", "assalamu", "alaikum", "ma_dama", "kull", "ila", "kafa",
         "diwan", "dua", "sual", "bayan",
     )
 }

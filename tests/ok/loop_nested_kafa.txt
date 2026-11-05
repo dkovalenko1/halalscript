@@ -1,0 +1,17 @@
+assalamu alaikum
+# kafa leaves only the innermost loop; the outer loop goes on.
+# The body declares a variable, which is initialised afresh on every round.
+inshallah dirham rounds := 0
+kull dirham i := 1 ila 3 yalla
+    inshallah dirham j := 0
+    ma_dama halal {
+        j := j + 1
+        istikhara j > i yalla
+            kafa
+        khalas
+        bismillah dirham cell := i * 10 + j
+        bayan(cell)
+    }
+    rounds := rounds + 1
+khalas
+ameen rounds

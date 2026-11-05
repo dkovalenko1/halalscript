@@ -1,0 +1,12 @@
+assalamu alaikum
+# The block of istikhara is not a loop, even inside a dua called from a loop.
+dua dirham stop(dirham x) yalla
+    istikhara x > 0 yalla
+        kafa
+    khalas
+    ameen x
+khalas
+kull dirham i := 1 ila 3 yalla
+    bismillah dirham y := stop(i)
+khalas
+ameen 0

@@ -1,0 +1,36 @@
+Program
+  Decl rounds dirham inshallah (mutable)
+    Int 0
+  Kull i dirham
+    Int 1
+    Int 3
+    Block yalla
+      Decl j dirham inshallah (mutable)
+        Int 0
+      MaDama
+        Bool halal
+        Block brace
+          Assign j
+            BinOp +
+              Var j
+              Int 1
+          Istikhara
+            BinOp >
+              Var j
+              Var i
+            Block yalla
+              Kafa
+          Decl cell dirham bismillah (immutable)
+            BinOp +
+              BinOp *
+                Var i
+                Int 10
+              Var j
+          Bayan
+            Var cell
+      Assign rounds
+        BinOp +
+          Var rounds
+          Int 1
+  Ameen
+    Var rounds

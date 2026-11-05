@@ -1,0 +1,6 @@
+assalamu alaikum
+inshallah dirham n := 3
+ma_dama n yalla
+    n := n - 1
+khalas
+ameen n

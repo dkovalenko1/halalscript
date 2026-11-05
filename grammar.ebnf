@@ -20,6 +20,7 @@ statement   ::= declaration NL
               | assignment NL
               | if_stmt
               | while_stmt
+              | for_stmt
               | print NL ;
 
 declaration ::= decl_kind type IDENT ":=" expr ;
@@ -39,11 +40,19 @@ if_stmt     ::= "istikhara" expr block [ "qadarallah" block ] ;
 (* ma_dama, "as long as": the block runs again while the fatwa holds. *)
 while_stmt  ::= "ma_dama" expr block ;
 
+(* kull, "each": the counter takes every value from the first expr to the
+   second, both included; both are computed once, before the first round. The
+   counter is dirham or dinar, lives in the block only and cannot be assigned. *)
+for_stmt    ::= "kull" type IDENT ":=" expr "ila" expr block ;
+
+(* kafa, "enough", leaves the innermost loop. It is the last statement of its block. *)
+break_stmt  ::= "kafa" NL ;
+
 (* A block is closed in the style it was opened in. *)
 block       ::= "yalla" NL block_body "khalas" NL
               | "{"     NL block_body "}"      NL ;
-block_body  ::= statement { statement } [ exit_stmt ]
-              | exit_stmt ;                   (* never empty *)
+block_body  ::= statement { statement } [ exit_stmt | break_stmt ]
+              | exit_stmt | break_stmt ;      (* never empty *)
 
 (* At the top level ameen ends the program; inside a dua it returns. *)
 exit_stmt   ::= "ameen" expr NL ;
@@ -104,4 +113,4 @@ whitespace   ::= " " | ? tab ? | ? carriage return ? ;   (* discarded *)
 
 (* Reserved words: wallahi bismillah inshallah dirham dinar fatwa halal haram
    istikhara qadarallah yalla khalas ameen la assalamu alaikum ma_dama
-   diwan dua sual bayan. *)
+   kull ila kafa    diwan dua sual bayan. *)

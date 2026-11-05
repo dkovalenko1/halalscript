@@ -40,6 +40,7 @@ class CodeGen:
         self.this = None  # the object pointer of the member dua being built
         self.owner = None  # the diwan of the member dua being built
         self.last_alloca = None
+        self.loop_ends = []  # the block after each enclosing loop, innermost last; kafa goes there
         char_pointer = I8.as_pointer()
         self.printf = ir.Function(self.module, ir.FunctionType(I32, [char_pointer], var_arg=True),
                                   name="printf")
@@ -202,10 +203,49 @@ class CodeGen:
         self.builder.position_at_end(cond_bb)
         self.builder.cbranch(node.condition.accept(self), body_bb, end_bb)
         self.builder.position_at_end(body_bb)
-        node.body.accept(self)
+        self.loop_body(node.body, end_bb)
         if not self.builder.block.is_terminated:  # a body that ends with ameen has its ret
             self.builder.branch(cond_bb)
         self.builder.position_at_end(end_bb)
+
+    def loop_body(self, body, end_bb):
+        self.loop_ends.append(end_bb)
+        body.accept(self)
+        self.loop_ends.pop()
+
+    def visit_for(self, node):
+        """Both bounds are computed once, before the loop. The step leaves the loop when
+        the counter has reached the last value, before adding 1, so a loop up to the
+        largest dirham never overflows. The branch from for.next to for.cond is the back edge."""
+        counter = self.entry_alloca(node.type_name, node.name)
+        self.slots[id(node)] = counter
+        start = self.coerce(node.start.accept(self), node.start.type, node.type_name)
+        end = self.coerce(node.end.accept(self), node.end.type, node.type_name)
+        self.builder.store(start, counter)
+        cond_bb = self.function.append_basic_block("for.cond")
+        body_bb = self.function.append_basic_block("for.body")
+        step_bb = self.function.append_basic_block("for.step")
+        next_bb = self.function.append_basic_block("for.next")
+        end_bb = self.function.append_basic_block("for.end")
+        self.builder.branch(cond_bb)
+        self.builder.position_at_end(cond_bb)
+        in_range = self.builder.icmp_signed("<=", self.builder.load(counter), end)
+        self.builder.cbranch(in_range, body_bb, end_bb)
+        self.builder.position_at_end(body_bb)
+        self.loop_body(node.body, end_bb)
+        if not self.builder.block.is_terminated:
+            self.builder.branch(step_bb)
+        self.builder.position_at_end(step_bb)
+        value = self.builder.load(counter)
+        self.builder.cbranch(self.builder.icmp_signed("==", value, end), end_bb, next_bb)
+        self.builder.position_at_end(next_bb)
+        self.builder.store(self.builder.add(value, ir.Constant(value.type, 1), flags=["nsw"]),
+                           counter)
+        self.builder.branch(cond_bb)
+        self.builder.position_at_end(end_bb)
+
+    def visit_break(self, node):
+        self.builder.branch(self.loop_ends[-1])
 
     def visit_exit(self, node):
         value = node.value.accept(self)

@@ -14,7 +14,7 @@ from .ast_nodes import (
     AssignNode, BinOpNode, BlockNode, BoolLiteralNode, CallNode, DeclNode, DiwanNode, DuaNode,
     ExitNode, ExprNode, FieldAccessNode, FieldDeclNode, IfNode, IntLiteralNode, MemberCallNode,
     NewNode, NotNode, ParamNode, PrintNode, ProgramNode, ReadNode, StmtNode, StringNode, VarNode,
-    WhileNode, chain,
+    WhileNode, ForNode, BreakNode, chain,
 )
 from .errors import CompileError
 from .lexer import KEYWORDS, Token
@@ -135,7 +135,12 @@ class Parser:
             return self.parse_if()
         if kind == "ma_dama":
             return self.parse_while()
-        if kind in DECL_KINDS:
+        if kind == "kull":
+            return self.parse_for()
+        if kind == "kafa":
+            self.eat()
+            statement = BreakNode(token.line, token.column)
+        elif kind in DECL_KINDS:
             statement = self.parse_declaration()
         elif kind == "bayan":
             statement = self.parse_print()
@@ -156,8 +161,8 @@ class Parser:
                        "was never started")
         elif kind in OPENERS:
             message = (f"'{kind}' may only open the block of 'istikhara', 'qadarallah', 'ma_dama', "
-                       "'dua' or 'diwan', at the end of its line — a journey needs a reason to "
-                       "begin")
+                       "'kull', 'dua' or 'diwan', at the end of its line — a journey needs a "
+                       "reason to begin")
         elif kind == "diwan":
             message = ("a 'diwan' is declared at the top of the program, before every dua and "
                        "statement — the registers are drawn up before the business begins")
@@ -375,6 +380,31 @@ class Parser:
         condition = self.parse_expr()
         return WhileNode(keyword.line, keyword.column, condition, self.parse_block("ma_dama"))
 
+    def parse_for(self) -> ForNode:
+        """for_stmt ::= "kull" type IDENT ":=" expr "ila" expr block"""
+        self.eat()
+        type_name = self.parse_type("kull")
+        name = self.expect_name(type_name)
+        if self.peek_kind() != ":=":
+            raise self.error(f"expected ':=' and the first value of '{name.text}' — a count must "
+                             "know where it begins")
+        self.eat()
+        if self.peek() is None or self.peek_kind() == "ila":
+            raise self.error(f"expected the first value of '{name.text}' after ':=' — "
+                             + EMPTY_INVOCATION)
+        start = self.parse_expr()
+        if self.peek_kind() != "ila":
+            got = f"got '{self.peek().text}'" if self.peek() else "found end of line"
+            raise self.error(f"expected 'ila' and the last value of '{name.text}', {got} — a "
+                             "count must know where it ends")
+        self.eat()
+        if self.peek() is None or self.peek_kind() in OPENERS:
+            raise self.error(f"expected the last value of '{name.text}' after 'ila' — "
+                             + EMPTY_INVOCATION)
+        end = self.parse_expr()
+        body = self.parse_block("kull")
+        return ForNode(name.line, name.column, name.text, type_name, start, end, body)
+
     def parse_block(self, owner: str) -> BlockNode:
         """block ::= "yalla" NL block_body "khalas" NL | "{" NL block_body "}" NL
 
@@ -404,6 +434,9 @@ class Parser:
                 break
             if exit_node is not None:
                 raise self.after_exit(first)
+            if statements and isinstance(statements[-1], BreakNode):
+                raise self.error("statement after 'kafa' — the loop is already left; nothing "
+                                 "after it would ever run", first)
             if first.kind == "ameen":
                 self.next_line()
                 exit_node = self.parse_exit()

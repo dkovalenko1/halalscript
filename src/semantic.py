@@ -16,7 +16,7 @@ Symbol tables:
 """
 
 from .ast_nodes import (
-    CallNode, DeclNode, FieldAccessNode, FieldDeclNode, IntLiteralNode, MemberCallNode,
+    CallNode, DeclNode, ForNode, FieldAccessNode, FieldDeclNode, IntLiteralNode, MemberCallNode,
     ParamNode, StringNode, VarNode, chain, count,
 )
 from .errors import CompileError
@@ -40,6 +40,7 @@ class SemanticChecker:
         self.function = None  # the DuaNode whose body is checked, or None at the top level
         self.top_level: set[str] = set()  # names declared at the top level, for a clearer error
         self.member_calls: list = []  # (caller, call), judged once mutation is known
+        self.loops = 0  # how many loops enclose the statement being checked
 
     def fail(self, node, message: str):
         raise CompileError(node.line, node.column, message)
@@ -170,6 +171,7 @@ class SemanticChecker:
     def visit_dua(self, node):
         frame: dict = {}
         outer, self.scopes, self.function = self.scopes, [frame], node
+        outer_loops, self.loops = self.loops, 0
         for param in node.params:
             self.check_new_name(param, "a parameter")
             if param.name in frame:
@@ -178,7 +180,7 @@ class SemanticChecker:
             frame[param.name] = param
         # The parameters and the locals of the body's own block share one frame.
         self.visit_block(node.body, new_scope=False)
-        self.scopes, self.function = outer, None
+        self.scopes, self.function, self.loops = outer, None, outer_loops
 
     # ---------- statements ----------
 
@@ -256,6 +258,9 @@ class SemanticChecker:
             self.fail(node, f"cannot assign to '{written}': '{root.name}' is a parameter of dua "
                             f"'{self.function.name}' — what was handed to a supplication is not "
                             "amended")
+        if isinstance(decl, ForNode):
+            self.fail(node, f"cannot assign to '{written}': it is the counter of 'kull' — the "
+                            "loop keeps the count, and no one else")
         if isinstance(decl, FieldDeclNode):
             self.function.mutating = True
             if not decl.mutable:
@@ -294,7 +299,30 @@ class SemanticChecker:
         if condition != "fatwa":
             self.fail(node, f"the condition of 'ma_dama' must be fatwa, got {condition} — "
                             "'as long as' needs a ruling, not a coin")
+        self.loops += 1
         node.body.accept(self)
+        self.loops -= 1
+
+    def visit_for(self, node):
+        if node.type_name not in INTEGERS:
+            self.fail(node, f"the counter '{node.name}' of 'kull' must be dirham or dinar, not "
+                            f"{node.type_name} — only coins are counted")
+        self.check_new_name(node, "a counter")
+        for bound, verb in ((node.start, "start"), (node.end, "end")):
+            bound.accept(self)  # the counter is not in scope in its own bounds
+            self.check_assignable(bound, node.type_name, bound, f"{verb} the counter '{node.name}'")
+        # The counter and the locals of the body share one frame, so the body
+        # cannot declare a second variable of the counter's name.
+        self.scopes.append({node.name: node})
+        self.loops += 1
+        self.visit_block(node.body, new_scope=False)
+        self.loops -= 1
+        self.scopes.pop()
+
+    def visit_break(self, node):
+        if not self.loops:
+            self.fail(node, "'kafa' outside a loop — one cannot say \"enough\" to what was never "
+                            "begun")
 
     def visit_exit(self, node):
         have = node.value.accept(self)
