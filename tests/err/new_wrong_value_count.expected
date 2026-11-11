@@ -1,0 +1,1 @@
+compilation error: line 13:22: 'Point' has 2 fields, but 3 values are given — every entry of the register receives exactly one value

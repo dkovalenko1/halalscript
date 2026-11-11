@@ -1,0 +1,4 @@
+assalamu alaikum
+bismillah dirham a := 1
+bismillah dinar a := 2
+ameen a

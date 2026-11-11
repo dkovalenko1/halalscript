@@ -1,0 +1,5 @@
+assalamu alaikum
+dua dirham add(dirham a, dirham b) yalla
+    ameen a + b
+khalas
+ameen add(1, halal)

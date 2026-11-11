@@ -1,0 +1,11 @@
+assalamu alaikum
+diwan Point yalla
+    bismillah dirham x
+    bismillah dirham y
+    dua dirham d2() yalla
+        ameen x * x + y * y
+    khalas
+khalas
+bismillah Point p := Point(sual(), sual())
+bayan(p)
+ameen p.d2()

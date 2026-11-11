@@ -1,0 +1,264 @@
+AI USAGE DISCLOSURE: HalalScript, Project Stage 2
+=================================================
+
+Tool: Claude Code (model Claude Opus 5.5), run through the T3 Code desktop app,
+with access to my local folder containing the course PDFs (practices 1 to 7,
+the stage 1 and stage 2 tasks), my practice repository
+languages-and-compilers-design, and this repository. It also used a browser
+tab of the T3 Code app to open the course Moodle page after I logged in there
+myself.
+
+Transcript: the whole stage was done in one Claude Code session on
+2026-10-27. The session has no public link, so the prompts are reproduced
+verbatim below.
+
+The AI wrote the code, the tests and most of the text in this stage. I made
+the design decisions listed in section 3.
+
+
+1. PROMPTS (verbatim, in order)
+-------------------------------
+
+Prompt 1:
+
+  Here is the main Moodle page for my uni: https://teaching.kse.org.ua/my/
+  Please check this course page and pull the assignment due today. Explain
+  what should we do.
+
+Prompt 2 (after logging in to Moodle myself in the app's browser tab):
+
+  logged in
+
+Prompt 3:
+
+  stage1 is merged into main. Before we start, check the practice files in
+  [practice-files](practice-files) and the course repo with the
+  implementations in [languages-and-compilers-design]
+  (languages-and-compilers-design) for the context. For task 1 we need to
+  define our own syntax for our new functionality, right? What is your
+  proposition for it that will mach our language design?
+
+Prompt 4:
+
+  1. `halal`/`haram` surely, with a compact description in the README that it
+     is actually true/false that was required.
+  2. Seeing `wallahi` constants follow the architecture we implemented in the
+     course repo, right? If so, we keep that.
+  3. Point(...) is the right call.
+  You can create a branch and commit your work when you finish a chunk. One
+  small note: you should omit the CLAUDE.md rule for using the writing skill
+  for the README in order to keep the voice of the file that is already
+  settled. Every other file that does not require that type of writing should
+  still follow the rules.
+
+Prompt 5:
+
+  The stage files mentions global state, but does it require any to be
+  actually used?
+
+Prompt 6:
+
+  How many tests did you add, and what are they doing? Did you cover new
+  functionality with basic behaviors and edge cases? We should avoid loads of
+  tests just to make them green; each one should bring real value by covering
+  a real concern.
+
+Prompt 7:
+
+  Yes, cut those three overlaps and add ones that close gaps. Update docs.
+
+Prompt 8:
+
+  There are a few more things I'd like to change. First of all, the README
+  section with the setup/running guide now contains macOS-specific rules,
+  which should not be the case.
+
+Prompt 9:
+
+  Next is the VSCode extension. I want it to be synced with all the new
+  functionality we have now. What are the things we need to add?
+
+Prompt 10:
+
+  Great, let's implement all of it, including the optional ones. Screenshots
+  were taken by Claude using a computer use; you should do the same.
+
+Prompt 11 (with a screenshot of my VS Code reporting "the character '.'
+appears in no scripture accepted by this language" in examples/treasury.halal):
+
+  Example from the repo shows the error now
+
+Prompt 12:
+
+  Where can i configure halalscript.pythonPath?
+
+Prompt 13 (with a screenshot of an empty terminal after pressing the run
+button):
+
+  running examples/treasury.halal using button produces nothing, terminal is
+  stuck
+
+Prompt 14:
+
+  Two separate calls to sual() read from one line? Is that the correct
+  behaviour? Shouldn't different reads() use different lines of input?
+
+Prompt 15:
+
+  Add numeric check before returning anything.
+
+Prompt 16:
+
+  Spin up the gpt-6.1-sol agent to review the changes we made for this stage.
+  It should have access to the stage file and be able to run/compile any code
+  it needs for checking without leaving any bloat in the repo.  It should
+  report real, proven findings in priority order. Justify and explain its
+  findings and whether we should fix them.
+
+Prompt 17:
+
+  Yes, fix findings 1-4.
+
+Prompt 18:
+
+  We have time left to fix 5th finding with the extension, let's fix that too.
+
+
+2. WHAT THE AI PRODUCED, PART BY PART
+-------------------------------------
+
+Reading the task. The AI opened the Moodle calendar, found the assignment due
+on 27 October, downloaded w07-project-stage2.pdf and summarised its four
+tasks, the grading and the submission steps.
+
+Task 1, language design. The AI proposed the syntax after reading practices 6
+and 7, the Practice 7 grammar of my course repository, and the stage 1
+DESIGN.md: `dua` for functions, `diwan` for structures, fields declared with
+`bismillah` or `inshallah`, `ameen` as the return inside a dua, `Point(3, 4)`
+to create an object, `sual()` to read and `bayan(...)` to print. It avoided
+words tied to acts of worship (iqra, adhan, khutba) for read and print, as the
+stage 1 design rules require. It also wrote the grammar.ebnf changes and the
+README sections. Taken as proposed, except for the decisions in section 3.
+
+Task 2, front end. src/lexer.py gained the four keywords, ',' and '.', and
+string literals checked as UTF-8. src/parser.py gained one method per new rule
+(diwan, field, dua, postfix chain, arguments, bayan) and the fixed program
+order. src/ast_nodes.py gained the new node classes and their --ast labels.
+Taken as generated.
+
+Task 3, semantic analysis and code generation. src/semantic.py is new: the
+symbol tables for variables, duas and diwans, every stage 1 rule from
+DESIGN.md (which stage 1 had only designed), and the stage 2 rules, including
+the mutation fixed point. src/codegen.py is new: the module through llvmlite's
+IRBuilder, with runtime overflow checks through the llvm.s*.with.overflow
+intrinsics. Both follow the structure of the SemanticChecker and CodeGen
+classes of my languages-and-compilers-design repository (practices 6 and 7).
+compiler.py now writes output.ll. Taken as generated.
+
+Task 4, tests. 22 new valid programs, each run end to end, and 62 new invalid
+programs, plus check.py rewritten to compile, run under lli with NAME.in as
+input, and compare the output. The AI recorded the outputs and error lines by
+running the compiler, then read each one and checked it against the program
+before keeping it. Two stage 1 files changed: tests/ok/spacing_tight.txt used
+an undeclared name, which the new semantic pass rightly rejects, so a
+declaration was added; tests/err/decl_missing_type.expected now also lists "or
+a diwan" among the types. When I asked for an audit of the tests (prompt 6),
+the AI listed what each one covers, found three invalid programs that ran the
+same code path as another test, and found gaps: the three-way name collision
+in a member dua, a local named like a field, duplicate names, and --ast dumps
+of chains and strings. It removed the three overlapping programs and added
+five programs and two .ast files for the gaps.
+
+Extra. examples/treasury.halal, a stage 2 example program.
+
+Setup steps (prompt 8). The README's build steps named Homebrew paths; the AI
+rewrote them for any platform (the LLVM tools on PATH, commands inside an
+activated virtual environment) and removed the Homebrew fallback from
+check.py, then ran the new steps as written in a fresh copy of the repository.
+
+VS Code extension (optional, prompts 9 and 10). The AI listed what the stage 1
+extension lacked, and on my request implemented all of it: the bundled
+compiler now includes the semantic pass, so semantic errors are underlined
+live; the TextMate grammar covers diwans, duas, parameters, calls, member calls,
+field chains, strings, sual and bayan; the keyword table has rulings for dua,
+diwan, sual and bayan; new snippets; a symbol scanner (src/symbols.ts) gives
+hovers with dua signatures, diwan fields and fields reached through a chain,
+and completion of only the fields and member duas after "chain."; a command
+runs the program under lli in a terminal (runner/run_program.py), only in a
+trusted workspace, with a new halalscript.lliPath setting. It added a grammar
+test for the new scopes, nine integration tests and two fixtures, and three new
+screenshot scenes. Taken as generated.
+
+Screenshots (prompt 10). The session had no computer-use tool, so the AI took
+the screenshots with the extension's own screenshot script, which drives a
+downloaded VS Code and captures the screen. It then looked at each of the nine
+images; one hover was cut off by VS Code's maximum hover height, so it shortened
+that keyword's example and took the screenshots again.
+
+Trying the extension myself (prompts 11 to 13). My VS Code still ran the
+installed 0.1.0 extension, whose stage 1 compiler has no '.' token; the AI
+installed the 0.2.0 package. The empty terminal was the program waiting for
+its two sual() numbers without saying so; the AI made the runner announce the
+program and, when it calls sual(), ask for the input before it waits.
+
+Reading input (prompts 14 and 15). The AI showed that the task reads one
+number per call, not one line (point_read.in holds "3 4" for two reads), and
+found that sual() returned garbage when the input held a word or nothing. On my
+request it made sual() check scanf's result, and also the dirham range, since
+4000000000 wrapped silently; either failure now halts the program with a
+verdict before the value is used. Two end-to-end tests cover the two checks.
+
+Independent review (prompts 16 and 17). A second agent, OpenAI's gpt-6.1-sol
+run through the same T3 Code app, reviewed the branch against the stage PDF
+with the rule to report only findings it reproduced, and left the repository
+untouched. It reported five; Claude reproduced each before recommending. On my
+request four were fixed, each with a test: a NUL byte in a string cut bayan's
+output short; a field named like a diwan could not receive a member call; a
+500-term expression ended in a Python traceback (the recursion limit is now
+raised, and a program deeper still gets a compilation error instead); a member
+dua could take a diwan's name, against the README. The fifth, in the VS Code
+extension (hover and completion still found a declaration after its block had
+closed), was first left for later, then fixed on my request (prompt 18): the
+symbol scanner now records where each declaration's block closes, and an
+integration test covers the reviewer's program.
+
+
+3. WHAT I DECIDED OR CHANGED (relative to the AI's proposals)
+-------------------------------------------------------------
+
+- Fatwas print as `halal` and `haram`, not `true` and `false`, and the README
+  says in a short note that the task asked for true and false.
+- What a dua body sees follows my course repository: no top-level variables at
+  all. The AI had proposed that a dua could see the top-level `wallahi`
+  constants; it checked my practice repository, found that a function there
+  never sees top-level names, and dropped the idea.
+- Objects are created as `Point(...)`. The AI had also offered `{3, 4}`.
+- The README keeps the voice it had in stage 1.
+- The stage only asks the README to state what happens when a parameter, a
+  field and a global share a name (prompt 5); globals do not have to be
+  visible, so the rule stays as it is, with a test for that exact case.
+- Every test must cover a real concern: overlapping tests were removed rather
+  than kept for the count (prompts 6 and 7).
+- The setup steps must not depend on one platform (prompt 8).
+- The extension gets every proposed feature, including the optional ones:
+  completion after '.', the run command and new screenshots (prompt 10).
+
+
+4. HOW THE RESULT WAS CHECKED
+-----------------------------
+
+check.py passes all 144 rows: 41 valid programs run end to end under lli,
+100 invalid programs give their exact error line, and the 3 examples compile
+and run. Every program in the README was compiled and run. The extension
+passes its two grammar tests and 24 integration tests in a downloaded VS Code,
+and the packaged halalscript-0.2.0.vsix holds the stage 2 compiler. The IR of a member
+dua was read to confirm that its first parameter is a pointer and that a field
+write is a gep, a load, an add and a store.
+
+
+5. WHAT I UNDERSTOOD (in my own words)
+--------------------------------------
+
+Compiler works in stages. Lexer produces tokens, parser builds an ast, and the semantic checker resolves names , check types, function args and mutability before llvm codegen.
+Func signatures are collected first, so we can support recursion and forward calls. Member funcs recieve a hidden pointer to their own object, so they can update its fields.
+The extension uses the compiler to report errors in the editor. We handle highlights, func signatures on hover and field/method completion after a dot. Run command (button in UI) compiles the program to llvm IR and executes it in therminal, where user can provide inputs if prompted.

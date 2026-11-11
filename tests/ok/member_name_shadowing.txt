@@ -1,0 +1,25 @@
+assalamu alaikum
+# Inside a member dua a name is looked up among the parameters and locals,
+# then the fields; a top-level variable of the same name is never reached.
+diwan Account yalla
+    inshallah dirham balance
+
+    dua dirham with(dirham balance) yalla    # the parameter hides the field
+        ameen balance
+    khalas
+
+    dua dirham doubled() yalla
+        bismillah dirham balance := 7        # a local hides the field
+        ameen balance * 2
+    khalas
+
+    dua dirham own() yalla                   # neither: the field itself
+        ameen balance
+    khalas
+khalas
+bismillah dirham balance := 1000             # the top-level balance
+bismillah Account a := Account(5)
+bayan(a.with(30))
+bayan(a.doubled())
+bayan(a.own())
+ameen balance

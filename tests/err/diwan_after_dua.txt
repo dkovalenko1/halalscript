@@ -1,0 +1,8 @@
+assalamu alaikum
+dua dirham add(dirham a, dirham b) yalla
+    ameen a + b
+khalas
+diwan Point yalla
+    inshallah dirham x
+khalas
+ameen 0

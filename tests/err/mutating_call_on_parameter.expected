@@ -1,0 +1,1 @@
+compilation error: line 14:13: cannot call mutating dua 'shift' on 'p': it is a parameter, which is never amended — a duty that amends its object needs an object that may be amended

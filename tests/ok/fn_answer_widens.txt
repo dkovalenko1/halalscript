@@ -1,0 +1,6 @@
+assalamu alaikum
+# the answer x * 2 is a dirham; it widens into the dinar the dua promised
+dua dinar twice(dirham x) {
+    ameen x * 2
+}
+ameen twice(21)

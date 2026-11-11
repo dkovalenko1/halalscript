@@ -1,0 +1,22 @@
+assalamu alaikum
+# ping assigns no field itself, but it calls pong, which does, and pong calls
+# ping back: both are mutating, so c must be inshallah
+diwan Counter yalla
+    inshallah dirham n
+
+    dua dirham ping(dirham k) yalla
+        istikhara k == 0 yalla
+            ameen n
+        khalas
+        ameen pong(k - 1)
+    khalas
+
+    dua dirham pong(dirham k) yalla
+        n := n + 1
+        ameen ping(k)
+    khalas
+khalas
+inshallah Counter c := Counter(0)
+bismillah dirham r := c.ping(3)
+bayan(r)
+ameen c.n

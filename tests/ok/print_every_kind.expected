@@ -1,0 +1,10 @@
+salam: 100% \n stays as written
+مرحبا
+Point(x: 3, y: -4)
+Circle(center: Point(x: 3, y: -4), filled: halal)
+Point(x: 0, y: 0)
+-1
+6000000000
+halal
+haram
+Program exit with result -4

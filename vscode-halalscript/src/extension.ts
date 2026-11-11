@@ -1,5 +1,6 @@
 // HalalScript for VS Code: live compiler verdicts, keyword rulings on hover,
-// completion, Eastern Arabic digit conversion and an --ast viewer. Highlighting,
+// completion (also of fields and member duas after '.'), Eastern Arabic digit
+// conversion, an --ast viewer and a command that runs the program. Highlighting,
 // snippets, comments and indentation are declared in package.json.
 
 import * as crypto from "crypto";
@@ -11,16 +12,13 @@ import * as vscode from "vscode";
 import { codePointColumnToOffset, CompilerError, runCompiler } from "./compiler";
 import { numberAround, toArabicDigits, toWesternDigits } from "./digits";
 import { KEYWORD_BY_WORD, KEYWORDS, keywordMarkdown } from "./keywords";
+import {
+  chainBefore, Diwan, diwanOfChain, Dua, duaAt, duaNamed, KIND_FLAG, ownFieldAt, scan, signature, Symbols,
+  variableAt, visibleAt,
+} from "./symbols";
 
 const LANGUAGE = "halalscript";
 const DEBOUNCE_MS = 300;
-const DECLARATION =
-  /^\s*(wallahi|bismillah|inshallah)\s+(dirham|dinar|fatwa)\s+([A-Za-z_][A-Za-z0-9_]*)/;
-const KIND_FLAG: Record<string, string> = {
-  wallahi: "constant",
-  bismillah: "immutable",
-  inshallah: "mutable",
-};
 
 let extensionContext: vscode.ExtensionContext;
 let failureShown = false;
@@ -58,10 +56,11 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     }),
     vscode.languages.registerHoverProvider(LANGUAGE, { provideHover }),
-    vscode.languages.registerCompletionItemProvider(LANGUAGE, { provideCompletionItems }),
+    vscode.languages.registerCompletionItemProvider(LANGUAGE, { provideCompletionItems }, "."),
     vscode.commands.registerCommand("halalscript.toArabicDigits", () => convertDigits(toArabicDigits)),
     vscode.commands.registerCommand("halalscript.toWesternDigits", () => convertDigits(toWesternDigits)),
     vscode.commands.registerCommand("halalscript.showAst", showAst),
+    vscode.commands.registerCommand("halalscript.runProgram", runProgram),
   );
   vscode.workspace.textDocuments.forEach((d) => schedule(d, 0));
 }
@@ -76,6 +75,7 @@ function settings() {
   return {
     python: config.get<string>("pythonPath", "python3"),
     compiler: configured || extensionContext.asAbsolutePath(path.join("compiler", "compiler.py")),
+    lli: config.get<string>("lliPath", "lli"),
     diagnostics: config.get<boolean>("diagnostics.enabled", true),
   };
 }
@@ -163,27 +163,38 @@ function inComment(lineText: string, offset: number): boolean {
   return hash !== -1 && hash < offset;
 }
 
-interface Declaration {
-  name: string;
-  kind: string;
-  type: string;
-  line: number;
+function symbolsOf(document: vscode.TextDocument): Symbols {
+  const lines: string[] = [];
+  for (let line = 0; line < document.lineCount; line++) {
+    lines.push(document.lineAt(line).text);
+  }
+  return scan(lines);
 }
 
-function declarations(document: vscode.TextDocument): Declaration[] {
-  const found: Declaration[] = [];
-  for (let line = 0; line < document.lineCount; line++) {
-    const match = DECLARATION.exec(document.lineAt(line).text);
-    if (match) {
-      found.push({ kind: match[1], type: match[2], name: match[3], line });
-    }
-  }
-  return found;
+function codeHover(code: string, text: string, range: vscode.Range): vscode.Hover {
+  const markdown = new vscode.MarkdownString();
+  markdown.appendCodeblock(code, LANGUAGE);
+  markdown.appendMarkdown(text);
+  return new vscode.Hover(markdown, range);
+}
+
+function duaHover(dua: Dua, range: vscode.Range): vscode.Hover {
+  const where = dua.owner ? `member dua of diwan ${dua.owner}` : "dua";
+  return codeHover(signature(dua), `${where}, declared on line ${dua.line + 1}`, range);
+}
+
+function diwanHover(diwan: Diwan, range: vscode.Range): vscode.Hover {
+  const lines = [`diwan ${diwan.name}`, ...diwan.fields.map((f) => `    ${f.kind} ${f.type} ${f.name}`),
+    ...diwan.duas.map((d) => `    ${signature(d)}`)];
+  const duas = diwan.duas.length === 1 ? "1 member dua" : `${diwan.duas.length} member duas`;
+  const fields = diwan.fields.length === 1 ? "1 field" : `${diwan.fields.length} fields`;
+  return codeHover(lines.join("\n"), `diwan with ${fields} and ${duas}, declared on line ${diwan.line + 1}`, range);
 }
 
 function provideHover(document: vscode.TextDocument, position: vscode.Position) {
   const range = document.getWordRangeAtPosition(position);
-  if (!range || inComment(document.lineAt(position.line).text, range.start.character)) {
+  const lineText = document.lineAt(position.line).text;
+  if (!range || inComment(lineText, range.start.character)) {
     return undefined;
   }
   const word = document.getText(range);
@@ -194,24 +205,81 @@ function provideHover(document: vscode.TextDocument, position: vscode.Position) 
   if (/^[٠-٩]+$/.test(word)) {
     return new vscode.Hover(`Eastern Arabic numeral: **${toWesternDigits(word)}**`, range);
   }
-  // The nearest declaration above the cursor (shadowing aside, a good guess).
-  const declaration = declarations(document)
-    .filter((d) => d.name === word && d.line <= position.line)
-    .pop();
-  if (declaration) {
-    const markdown = new vscode.MarkdownString();
-    markdown.appendCodeblock(`${declaration.kind} ${declaration.type} ${declaration.name}`, LANGUAGE);
-    markdown.appendMarkdown(
-      `${KIND_FLAG[declaration.kind]} ${declaration.type}, declared on line ${declaration.line + 1}`,
-    );
-    return new vscode.Hover(markdown, range);
+  const symbols = symbolsOf(document);
+  const line = position.line;
+  const called = /^\s*\(/.test(lineText.slice(range.end.character));
+  // after a '.': a field or a member dua of the diwan the chain reaches
+  const member = chainBefore(lineText, range.start.character);
+  if (member && member.partial === "") {
+    const diwan = diwanOfChain(symbols, member.chain, line);
+    const dua = called && diwan?.duas.find((d) => d.name === word);
+    if (dua) {
+      return duaHover(dua, range);
+    }
+    const field = diwan?.fields.find((f) => f.name === word);
+    if (field) {
+      return codeHover(`${field.kind} ${field.type} ${field.name}`,
+        `${KIND_FLAG[field.kind]} field of diwan ${diwan!.name}, declared on line ${field.line + 1}`, range);
+    }
+    return undefined;
   }
-  return undefined;
+  if (called) {
+    const diwan = symbols.diwans.get(word);
+    if (diwan) {
+      return diwanHover(diwan, range);
+    }
+    const dua = duaNamed(symbols, word, line);
+    return dua ? duaHover(dua, range) : undefined;
+  }
+  const variable = variableAt(symbols, word, line);
+  if (variable) {
+    if (variable.kind === "parameter") {
+      return codeHover(`${variable.type} ${variable.name}`,
+        `parameter of dua ${variable.dua!.name} (a copy, immutable) ${variable.type}`, range);
+    }
+    return codeHover(`${variable.kind} ${variable.type} ${variable.name}`,
+      `${KIND_FLAG[variable.kind]} ${variable.type}, declared on line ${variable.line + 1}`, range);
+  }
+  const field = ownFieldAt(symbols, word, line);
+  if (field) {
+    return codeHover(`${field.kind} ${field.type} ${field.name}`,
+      `${KIND_FLAG[field.kind]} field of this diwan, declared on line ${field.line + 1}`, range);
+  }
+  const diwan = symbols.diwans.get(word);
+  if (diwan) {
+    return diwanHover(diwan, range);
+  }
+  const dua = duaNamed(symbols, word, line);
+  return dua ? duaHover(dua, range) : undefined;
+}
+
+function duaItem(dua: Dua, kind: vscode.CompletionItemKind): vscode.CompletionItem {
+  const item = new vscode.CompletionItem(dua.name, kind);
+  item.detail = signature(dua);
+  item.insertText = new vscode.SnippetString(dua.params.length ? `${dua.name}($1)` : `${dua.name}()`);
+  return item;
 }
 
 function provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-  if (inComment(document.lineAt(position.line).text, position.character)) {
+  const lineText = document.lineAt(position.line).text;
+  if (inComment(lineText, position.character)) {
     return [];
+  }
+  const symbols = symbolsOf(document);
+  const line = position.line;
+  // after 'chain.': only the fields and the member duas of the diwan it reaches
+  const member = chainBefore(lineText, position.character);
+  if (member) {
+    const diwan = diwanOfChain(symbols, member.chain, line);
+    if (!diwan) {
+      return [];
+    }
+    const fields = diwan.fields.map((f) => {
+      const item = new vscode.CompletionItem(f.name, vscode.CompletionItemKind.Field);
+      item.detail = `${f.kind} ${f.type} (${KIND_FLAG[f.kind]} field of ${diwan.name})`;
+      return item;
+    });
+    return [...fields, ...diwan.duas.map((d) => duaItem(d, vscode.CompletionItemKind.Method))];
   }
   const items = KEYWORDS.map((k) => {
     const item = new vscode.CompletionItem(k.word, vscode.CompletionItemKind.Keyword);
@@ -220,15 +288,39 @@ function provideCompletionItems(document: vscode.TextDocument, position: vscode.
     return item;
   });
   const seen = new Set<string>();
-  for (const d of declarations(document)) {
-    if (seen.has(d.name)) {
-      continue;
+  const add = (item: vscode.CompletionItem) => {
+    const label = typeof item.label === "string" ? item.label : item.label.label;
+    if (!seen.has(label)) {
+      seen.add(label);
+      items.push(item);
     }
-    seen.add(d.name);
-    const kind = d.kind === "wallahi" ? vscode.CompletionItemKind.Constant : vscode.CompletionItemKind.Variable;
-    const item = new vscode.CompletionItem(d.name, kind);
-    item.detail = `${d.kind} ${d.type} (${KIND_FLAG[d.kind]})`;
-    items.push(item);
+  };
+  // the names this line can see: its own dua's names, or the top level's
+  const dua = duaAt(symbols, line);
+  const here = visibleAt(symbols, line);
+  for (const v of here.reverse()) {
+    const kind = v.kind === "wallahi" ? vscode.CompletionItemKind.Constant : vscode.CompletionItemKind.Variable;
+    const item = new vscode.CompletionItem(v.name, kind);
+    item.detail = v.kind === "parameter" ? `parameter ${v.type} (immutable)` : `${v.kind} ${v.type} (${KIND_FLAG[v.kind]})`;
+    add(item);
+  }
+  const owner = dua?.owner;
+  const ownDiwan = owner ? symbols.diwans.get(owner) : undefined;
+  for (const f of ownDiwan?.fields ?? []) {
+    const item = new vscode.CompletionItem(f.name, vscode.CompletionItemKind.Field);
+    item.detail = `${f.kind} ${f.type} (${KIND_FLAG[f.kind]} field of ${ownDiwan!.name})`;
+    add(item);
+  }
+  for (const d of ownDiwan?.duas ?? []) {
+    add(duaItem(d, vscode.CompletionItemKind.Method));
+  }
+  for (const d of symbols.duas.filter((d) => !d.owner)) {
+    add(duaItem(d, vscode.CompletionItemKind.Function));
+  }
+  for (const diwan of symbols.diwans.values()) {
+    const item = new vscode.CompletionItem(diwan.name, vscode.CompletionItemKind.Struct);
+    item.detail = `diwan ${diwan.name}(${diwan.fields.map((f) => `${f.type} ${f.name}`).join(", ")})`;
+    add(item);
   }
   return items;
 }
@@ -254,6 +346,38 @@ async function convertDigits(convert: (text: string) => string): Promise<void> {
       }
     }
   });
+}
+
+/**
+ * Compile the program to LLVM IR and run it under lli in a terminal, so that
+ * sual() reads what is typed there. The runner script reports a missing
+ * llvmlite or lli in words rather than as a traceback.
+ */
+async function runProgram(): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || editor.document.languageId !== LANGUAGE) {
+    void vscode.window.showInformationMessage("HalalScript: open a .halal file to run it.");
+    return;
+  }
+  if (!vscode.workspace.isTrusted) {
+    void vscode.window.showWarningMessage(
+      "HalalScript: a program is run only in a trusted workspace — trust this folder to run it.");
+    return;
+  }
+  const document = editor.document;
+  const source = tempPath(document);
+  await fs.promises.writeFile(source, document.getText(), "utf8");
+  const { python, compiler, lli } = settings();
+  const runner = extensionContext.asAbsolutePath(path.join("runner", "run_program.py"));
+  const title = `HalalScript: ${path.basename(document.fileName)}`;
+  vscode.window.terminals.filter((t) => t.name === title).forEach((t) => t.dispose());
+  const terminal = vscode.window.createTerminal({
+    name: title,
+    shellPath: python,
+    shellArgs: ["-B", runner, compiler, source, source.replace(/\.halal$/, ".ll"), lli,
+      path.basename(document.fileName)],
+  });
+  terminal.show();
 }
 
 async function showAst(): Promise<void> {

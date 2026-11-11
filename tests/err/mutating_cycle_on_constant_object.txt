@@ -1,0 +1,16 @@
+assalamu alaikum
+diwan Counter yalla
+    inshallah dirham n
+    dua dirham ping(dirham k) yalla
+        istikhara k == 0 yalla
+            ameen n
+        khalas
+        ameen pong(k - 1)
+    khalas
+    dua dirham pong(dirham k) yalla
+        n := n + 1
+        ameen ping(k)
+    khalas
+khalas
+bismillah Counter c := Counter(0)
+ameen c.ping(3)

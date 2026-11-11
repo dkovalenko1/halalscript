@@ -1,0 +1,24 @@
+assalamu alaikum
+diwan Point yalla
+    inshallah dirham x
+    inshallah dirham y
+    dua dirham d2() yalla
+        ameen x * x + y * y
+    khalas
+    dua dirham shift(dirham dx) yalla
+        x := x + dx
+        ameen x
+    khalas
+khalas
+diwan Circle yalla
+    inshallah Point center
+    inshallah dirham radius
+khalas
+inshallah Circle c := Circle(Point(3, 4), 2)
+c.center.y := 0
+c.radius := c.radius * 10
+bismillah dirham moved := c.center.shift(2)   # changes c.center itself
+bayan(c.center.d2())
+c.center := Point(1, 1)                       # every field of Point is inshallah
+bayan(c)
+ameen moved

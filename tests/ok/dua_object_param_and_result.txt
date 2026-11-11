@@ -1,0 +1,13 @@
+assalamu alaikum
+diwan Point yalla
+    inshallah dirham x
+    inshallah dirham y
+khalas
+dua Point moved(Point p, dirham dx) yalla
+    ameen Point(p.x + dx, p.y)
+khalas
+inshallah Point a := Point(1, 2)
+a := moved(a, 10)
+bismillah Point b := moved(moved(a, 1), 1)
+bayan(b)
+ameen a.x

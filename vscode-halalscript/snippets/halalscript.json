@@ -48,5 +48,40 @@
     "prefix": "qadarallah{",
     "body": ["qadarallah {", "\t$0", "}"],
     "description": "else, with a { … } block"
+  },
+  "Diwan (yalla)": {
+    "prefix": "diwan",
+    "body": ["diwan ${1:Name} yalla", "\tinshallah ${2|dirham,dinar,fatwa|} ${3:field}", "$0", "khalas"],
+    "description": "diwan — a structure: fields, then member duas"
+  },
+  "Diwan (braces)": {
+    "prefix": "diwan{",
+    "body": ["diwan ${1:Name} {", "\tinshallah ${2|dirham,dinar,fatwa|} ${3:field}", "$0", "}"],
+    "description": "diwan — a structure, with a { … } block"
+  },
+  "Field": {
+    "prefix": "field",
+    "body": "${1|inshallah,bismillah|} ${2|dirham,dinar,fatwa|} ${3:name}",
+    "description": "a field of a diwan: inshallah (mutable) or bismillah (fixed at creation)"
+  },
+  "Dua (yalla)": {
+    "prefix": "dua",
+    "body": ["dua ${1|dirham,dinar,fatwa|} ${2:name}(${3:dirham x}) yalla", "\t$0", "\tameen ${4:x}", "khalas"],
+    "description": "dua — a function; its block ends with ameen, the answer"
+  },
+  "Dua (braces)": {
+    "prefix": "dua{",
+    "body": ["dua ${1|dirham,dinar,fatwa|} ${2:name}(${3:dirham x}) {", "\t$0", "\tameen ${4:x}", "}"],
+    "description": "dua — a function, with a { … } block"
+  },
+  "Bayan": {
+    "prefix": "bayan",
+    "body": "bayan(${1:value})",
+    "description": "bayan — print one value or string literal, and a newline"
+  },
+  "Sual": {
+    "prefix": "sual",
+    "body": "sual()",
+    "description": "sual — read one dirham from the standard input"
   }
 }

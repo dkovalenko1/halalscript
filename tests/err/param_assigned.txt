@@ -1,0 +1,6 @@
+assalamu alaikum
+dua dirham f(dirham a) yalla
+    a := a + 1
+    ameen a
+khalas
+ameen f(1)

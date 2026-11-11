@@ -1,0 +1,7 @@
+assalamu alaikum
+wallahi dinar BIG := 3000000000
+wallahi dinar GOLD := BIG * 3
+wallahi fatwa RICH := la (GOLD == 0)
+bismillah dinar total := GOLD + 1
+bayan(RICH)
+ameen total

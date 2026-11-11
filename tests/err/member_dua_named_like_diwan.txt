@@ -1,0 +1,9 @@
+assalamu alaikum
+diwan Point yalla
+    inshallah dirham x
+    dua dirham Point() yalla
+        ameen x
+    khalas
+khalas
+bismillah Point p := Point(3)
+ameen p.Point()

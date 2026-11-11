@@ -1,0 +1,32 @@
+Program
+  Diwan Account yalla
+    Field balance dirham inshallah (mutable)
+    Field rate dirham bismillah (immutable)
+    Dua bonus() -> dirham (member of Account)
+      Block yalla
+        Ameen
+          BinOp *
+            Var balance
+            Var rate
+    Dua with(dirham balance) -> dirham (member of Account)
+      Param balance dirham (immutable)
+      Block yalla
+        Ameen
+          BinOp +
+            Var balance
+            Call bonus (0 arguments)
+  Dua bonus() -> dirham
+    Block yalla
+      Ameen
+        Int 1000
+  Decl a Account bismillah (immutable)
+    New Account (2 values)
+      Int 10
+      Int 3
+  Bayan
+    MemberCall with on a (1 argument)
+      Int 5
+  Bayan
+    Call bonus (0 arguments)
+  Ameen
+    Field a.balance

@@ -1,0 +1,4 @@
+assalamu alaikum
+bismillah dinar big := 1
+bismillah dirham small := big
+ameen small

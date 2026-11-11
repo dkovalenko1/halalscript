@@ -1,0 +1,20 @@
+assalamu alaikum
+diwan Purse yalla
+    bismillah dirham owner
+    inshallah dinar coins
+    dua dinar deposit(dinar amount) yalla
+        coins := coins + amount
+        ameen coins
+    khalas
+khalas
+diwan Treasury {
+    inshallah Purse purse
+    bismillah dirham rate
+}
+dua dinar zakat(Treasury t) yalla
+    ameen t.purse.coins * t.rate
+khalas
+bismillah Treasury t := Treasury(Purse(1, 100), 25)
+bismillah dinar total := t.purse.deposit(50)
+bayan(t)
+ameen zakat(t)

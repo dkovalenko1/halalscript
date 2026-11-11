@@ -1,0 +1,24 @@
+assalamu alaikum
+diwan Point {
+    bismillah dirham x
+    bismillah dirham y
+}
+diwan Circle {
+    bismillah Point center
+    bismillah fatwa filled
+}
+dua Point origin() yalla
+    ameen Point(0, 0)
+khalas
+bismillah Point p := Point(3, 0 - 4)
+bismillah dinar big := 3000000000
+bayan("salam: 100% \n stays as written")
+bayan("مرحبا")
+bayan(p)
+bayan(Circle(p, halal))
+bayan(origin())
+bayan(p.x + p.y)
+bayan(big * 2)
+bayan(p.x == 3)
+bayan(la halal)
+ameen p.y

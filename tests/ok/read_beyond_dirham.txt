@@ -1,0 +1,8 @@
+assalamu alaikum
+# 2147483647 is the largest dirham and is read as it is; 4000000000 is a number
+# that does not fit a dirham, so sual() halts instead of wrapping it.
+bismillah dirham a := sual()
+bayan(a)
+bismillah dirham b := sual()
+bayan("never printed")
+ameen b

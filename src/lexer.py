@@ -4,7 +4,8 @@ lex() returns one token vector per source line that holds at least one token;
 blank and comment-only lines produce no vector. Positions are 1-based; the
 column counts characters (code points), so a two-byte Eastern Arabic digit is
 one column wide. A byte that ends a token is not consumed: the machine goes
-back to START and reads it again.
+back to START and reads it again. A string literal runs from '"' to the next
+'"' on the same line, with no escape sequences; its bytes must be valid UTF-8.
 """
 
 from dataclasses import dataclass
@@ -21,21 +22,22 @@ KEYWORDS = {
         "halal", "haram",
         "istikhara", "qadarallah", "yalla", "khalas", "ameen",
         "la", "assalamu", "alaikum", "ma_dama",
+        "diwan", "dua", "sual", "bayan",
     )
 }
-SINGLE_BYTE = {ord(c): c for c in "+-*(){}"}
+SINGLE_BYTE = {ord(c): c for c in "+-*(){},."}
 
-LF, CR, SPACE, TAB = 10, 13, 32, 9
+LF, CR, SPACE, TAB, QUOTE = 10, 13, 32, 9, 34
 ARABIC_LEAD, ARABIC_ZERO, ARABIC_NINE = 0xD9, 0xA0, 0xA9  # U+0660..U+0669 is D9 A0..D9 A9
 
 
 @dataclass(frozen=True)
 class Token:
-    kind: str  # a keyword, an operator spelling, "ident" or "number"
+    kind: str  # a keyword, an operator spelling, "ident", "number" or "string"
     text: str  # the source spelling
     line: int
     column: int
-    value: int | None = None  # the value of a number
+    value: int | str | None = None  # the value of a number, the text inside a string
 
 
 def is_letter(b: int) -> bool:
@@ -127,6 +129,9 @@ class Lexer:
                 elif b == ord("!"):
                     state = "BANG"
                     self.step()
+                elif b == QUOTE:
+                    state = "STRING"
+                    self.step()
                 elif b in SINGLE_BYTE:
                     self.step()
                     self.emit(SINGLE_BYTE[b])
@@ -138,6 +143,26 @@ class Lexer:
                     state = "START"
                     continue
                 self.i += 1  # any byte may stand in a comment; the column no longer matters
+
+            elif state == "STRING":
+                if b is None or b == LF:
+                    raise self.error("the string opened here is never closed on its line — a "
+                                     "proclamation must be finished before the line ends")
+                if b == QUOTE:
+                    self.step()
+                    text = self.data[self.start:self.i].decode("utf-8")
+                    self.emit("string", text[1:-1])
+                    state = "START"
+                    continue
+                if b >= 0x80:
+                    length = self.utf8_length()
+                    if length is None:
+                        raise CompileError(self.line, self.col, f"malformed UTF-8 byte 0x{b:02X} "
+                                           "— the bytes are not in a state of ritual purity")
+                    for _ in range(length):
+                        self.step()
+                    continue
+                self.step()
 
             elif state == "IDENT":
                 if b is not None and (is_letter(b) or is_digit(b)):
@@ -209,6 +234,19 @@ class Lexer:
             raise self.error(f"constant {text} exceeds even the dinar (i64) — this is riba, an "
                              "increase beyond every permitted measure")
         self.emit("number", self.value)
+
+    def utf8_length(self) -> int | None:
+        """The byte length of the valid UTF-8 character at the current byte, or None."""
+        b = self.data[self.i]
+        length = 2 if 0xC2 <= b <= 0xDF else 3 if 0xE0 <= b <= 0xEF else 4 if 0xF0 <= b <= 0xF4 else 0
+        sequence = self.data[self.i:self.i + length]
+        if not length or len(sequence) != length:
+            return None
+        try:
+            sequence.decode("utf-8")
+        except UnicodeDecodeError:  # a bad continuation byte, overlong forms and surrogates
+            return None
+        return length
 
     def unknown_character(self) -> CompileError:
         """Describe the character at the current byte: a stranger, or not UTF-8 at all."""

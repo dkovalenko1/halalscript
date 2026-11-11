@@ -1,0 +1,22 @@
+assalamu alaikum
+diwan Account yalla
+    inshallah dirham balance
+    bismillah dirham rate
+
+    # the member dua bonus hides the global dua bonus inside Account
+    dua dirham bonus() yalla
+        ameen balance * rate
+    khalas
+
+    # the parameter balance hides the field balance
+    dua dirham with(dirham balance) yalla
+        ameen balance + bonus()
+    khalas
+khalas
+dua dirham bonus() yalla
+    ameen 1000
+khalas
+bismillah Account a := Account(10, 3)
+bayan(a.with(5))
+bayan(bonus())
+ameen a.balance

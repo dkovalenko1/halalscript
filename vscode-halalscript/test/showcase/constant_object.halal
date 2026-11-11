@@ -1,0 +1,15 @@
+assalamu alaikum
+
+diwan Purse yalla
+    bismillah dirham owner
+    inshallah dinar coins
+
+    dua dinar deposit(dinar amount) yalla   # mutating: it assigns a field
+        coins := coins + amount
+        ameen coins
+    khalas
+khalas
+
+bismillah Purse purse := Purse(1, 100)    # a bismillah object is never amended
+bismillah dinar total := purse.deposit(50)
+ameen total

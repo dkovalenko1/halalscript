@@ -1,0 +1,15 @@
+assalamu alaikum
+# A local named like a field does not make a dua mutating: peek assigns its
+# local x, not the field, so it may be called on a bismillah object.
+diwan Point yalla
+    inshallah dirham x
+
+    dua dirham peek(dirham dx) yalla
+        inshallah dirham x := 0
+        x := x + dx
+        ameen x
+    khalas
+khalas
+bismillah Point p := Point(3)
+bayan(p.peek(4))
+ameen p.x

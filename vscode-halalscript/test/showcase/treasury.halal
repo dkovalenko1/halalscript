@@ -1,0 +1,43 @@
+assalamu alaikum   # peace be upon you
+
+# The treasury keeps a register (diwan) of purses. Run it with two numbers on
+# the standard input, the savings of two years:
+#   echo "120000 2000" | lli output.ll
+
+diwan Purse yalla
+    bismillah dirham owner           # fixed when the purse is created
+    inshallah dinar coins            # may be amended
+
+    dua dinar deposit(dinar amount) yalla   # mutating: it assigns a field
+        coins := coins + amount
+        ameen coins
+    khalas
+
+    dua fatwa owes_zakat() yalla
+        ameen la (coins == 0)
+    khalas
+khalas
+
+diwan Treasury {
+    inshallah Purse purse
+    bismillah dirham rate            # zakat in tenths of a percent
+}
+
+dua dinar zakat(Treasury t) yalla    # t is a copy, never amended
+    istikhara t.purse.owes_zakat() yalla
+        ameen t.purse.coins * t.rate
+    khalas
+    ameen 0
+khalas
+
+inshallah Treasury t := Treasury(Purse(1, sual()), 25)
+bismillah dinar total := t.purse.deposit(sual())    # every link is inshallah
+
+bayan("the register:")
+bayan(t)
+bayan(t.purse.owes_zakat())
+
+# Experiment: declare t with bismillah, and the deposit is refused.
+# Experiment: call zakat(t, 1) with one argument too many.
+
+ameen zakat(t)

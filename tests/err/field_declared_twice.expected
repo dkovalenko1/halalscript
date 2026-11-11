@@ -1,0 +1,1 @@
+compilation error: line 4:21: field 'x' is already declared in diwan 'Point' — an entry is recorded but once

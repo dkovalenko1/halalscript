@@ -1,0 +1,4 @@
+assalamu alaikum
+wallahi dirham LIMIT := 1
+LIMIT := 2
+ameen LIMIT
