@@ -1,0 +1,49 @@
+Program
+  Dua add(dirham x, dirham y) -> dirham
+    Param x dirham (immutable)
+    Param y dirham (immutable)
+    Block yalla
+      Ameen
+        BinOp +
+          Var x
+          Var y
+  Dua scale(dinar x, dirham by) -> dinar
+    Param x dinar (immutable)
+    Param by dirham (immutable)
+    Block yalla
+      Ameen
+        BinOp *
+          Var x
+          Var by
+  Dua big(dinar x) -> fatwa
+    Param x dinar (immutable)
+    Block yalla
+      Ameen
+        BinOp >
+          Var x
+          Int 1000
+  Bayan
+    Call add (2 arguments, pipe stage 1)
+      BinOp +
+        Int 2
+        Int 3
+      Int 10
+  Decl wide dinar bismillah (immutable)
+    Call scale (2 arguments, pipe stage 2)
+      Call add (2 arguments, pipe stage 1)
+        Int 1000000
+        Int 1
+      Int 5000
+  Bayan
+    Var wide
+  Bayan
+    BinOp ==
+      Call big (1 argument, pipe stage 1)
+        Var wide
+      Bool halal
+  Ameen
+    Call add (2 arguments, pipe stage 2)
+      Call add (2 arguments, pipe stage 1)
+        Int 7
+        Int 1
+      Int 2

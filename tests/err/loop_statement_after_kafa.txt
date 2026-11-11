@@ -1,5 +1,6 @@
 assalamu alaikum
 ma_dama halal yalla
-    ameen 1
+    kafa
+    bayan("unreachable")
 khalas
 ameen 0

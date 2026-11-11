@@ -1,0 +1,6 @@
+assalamu alaikum
+# The counter lives in the loop only.
+kull dirham i := 1 ila 3 yalla
+    bayan(i)
+khalas
+ameen i

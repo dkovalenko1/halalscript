@@ -1,0 +1,20 @@
+assalamu alaikum
+# ameen inside a loop leaves the dua, or the program, at once.
+dua dirham first_square_above(dirham limit) yalla
+    kull dirham i := 1 ila limit yalla
+        istikhara i * i > limit yalla
+            ameen i
+        khalas
+    khalas
+    ameen 0
+khalas
+bayan(first_square_above(50))
+bayan(first_square_above(0))
+inshallah dirham x := 0
+ma_dama halal yalla
+    x := x + 1
+    istikhara x == 4 yalla
+        ameen x
+    khalas
+khalas
+ameen 0

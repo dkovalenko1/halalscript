@@ -1,0 +1,12 @@
+Program
+  Decl total dirham inshallah (mutable)
+    Int 10
+  Istikhara
+    BinOp >
+      Var total
+      Int 5
+    Block yalla
+      Bayan
+        Int 1
+  Ameen
+    Var total

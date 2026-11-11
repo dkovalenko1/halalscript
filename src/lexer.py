@@ -21,7 +21,7 @@ KEYWORDS = {
         "dirham", "dinar", "fatwa",
         "halal", "haram",
         "istikhara", "qadarallah", "yalla", "khalas", "ameen",
-        "la", "assalamu", "alaikum", "ma_dama",
+        "la", "assalamu", "alaikum", "ma_dama", "kull", "ila", "kafa",
         "diwan", "dua", "sual", "bayan",
     )
 }
@@ -129,6 +129,12 @@ class Lexer:
                 elif b == ord("!"):
                     state = "BANG"
                     self.step()
+                elif b in (ord("<"), ord(">")):
+                    state = "ANGLE"
+                    self.step()
+                elif b == ord("|"):
+                    state = "BAR"
+                    self.step()
                 elif b == QUOTE:
                     state = "STRING"
                     self.step()
@@ -219,6 +225,20 @@ class Lexer:
                                      "with 'la'")
                 self.step()
                 self.emit("!=")
+                state = "START"
+
+            elif state == "ANGLE":  # < > <= >=
+                if b == ord("="):
+                    self.step()
+                self.emit(self.data[self.start:self.i].decode("ascii"))
+                state = "START"
+
+            elif state == "BAR":
+                if b != ord(">"):
+                    raise self.error("'|' must be followed by '>' — the pipe '|>' hands a value "
+                                     "to the next dua; a bar alone hands nothing")
+                self.step()
+                self.emit("|>")
                 state = "START"
 
         if self.tokens:

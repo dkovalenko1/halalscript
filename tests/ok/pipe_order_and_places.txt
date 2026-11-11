@@ -1,0 +1,31 @@
+assalamu alaikum
+# Stages run left to right, each after the stage before it; an object flows
+# through a pipe like any value; a pipe stands wherever a value does.
+diwan Point yalla
+    bismillah dirham x
+    bismillah dirham y
+khalas
+dua dirham trace(dirham v, dirham label) yalla
+    bayan(label)
+    ameen v
+khalas
+dua Point mirror(Point p) yalla
+    ameen Point(p.y, p.x)
+khalas
+dua dirham first(Point p) yalla
+    ameen p.x
+khalas
+dua fatwa below(dirham v, dirham limit) yalla
+    ameen v < limit
+khalas
+bismillah dirham v := 5 |> trace(1) |> trace(2) |> trace(3)
+bayan(Point(1, 9) |> mirror |> first)
+# The condition of ma_dama pipes again on every round.
+inshallah dirham i := 0
+ma_dama i |> below(3) yalla
+    i := i + 1
+khalas
+istikhara i |> below(4) yalla
+    bayan(trace(i, 4) |> trace(5))
+khalas
+ameen v

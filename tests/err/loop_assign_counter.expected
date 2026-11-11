@@ -1,0 +1,1 @@
+compilation error: line 4:9: cannot assign to 'i': it is the counter of 'kull' — the loop keeps the count, and no one else

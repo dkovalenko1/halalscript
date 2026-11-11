@@ -1,0 +1,38 @@
+Program
+  Diwan Point yalla
+    Field x dirham bismillah (immutable)
+    Field y dirham bismillah (immutable)
+  Decl x dirham bismillah (immutable)
+    Sual
+  Decl outer.x dirham bismillah (immutable)
+    Var x
+  Decl square.x dirham bismillah (immutable)
+    Var outer.x
+  Decl square.result dirham inshallah (mutable)
+    BinOp *
+      Var square.x
+      Var square.x
+  Decl square.ameen dirham bismillah (immutable)
+    Var square.result
+  Decl outer.inner dirham bismillah (immutable)
+    BinOp +
+      Var square.ameen
+      Int 1
+  Decl outer.ameen dirham bismillah (immutable)
+    Var outer.inner
+  Decl result dirham inshallah (mutable)
+    Var outer.ameen
+  Bayan
+    Var result
+  Decl manhattan.p Point bismillah (immutable)
+    New Point (2 values)
+      Var x
+      Int 4
+  Decl manhattan.ameen dirham bismillah (immutable)
+    BinOp +
+      Field manhattan.p.x
+      Field manhattan.p.y
+  Bayan
+    Var manhattan.ameen
+  Ameen
+    Var x

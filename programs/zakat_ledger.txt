@@ -1,0 +1,68 @@
+assalamu alaikum
+
+# Zakat ledger: the user enters their savings one amount per line, 0 ends the
+# list, and the ledger says whether the savings reach the nisab and how much
+# zakat is due on them: one fortieth (2.5%).
+
+diwan Purse yalla
+    inshallah dinar total
+    inshallah dirham entries
+
+    dua dirham add(dirham amount) yalla
+        total := total + amount
+        entries := entries + 1
+        ameen entries
+    khalas
+khalas
+
+# The savings on which zakat is due: all of them from the nisab up, none below it.
+dua dinar zakatable(dinar savings) yalla
+    wallahi dinar NISAB := 200
+    istikhara savings < NISAB yalla
+        ameen 0
+    khalas
+    ameen savings
+khalas
+
+# parts / whole of value, rounded down. The language has no division, so the
+# loop takes away one whole at a time and counts how many times it could.
+dua dinar share(dinar value, dirham parts, dirham whole) yalla
+    inshallah dinar rest := value * parts
+    inshallah dinar count := 0
+    ma_dama rest >= whole yalla
+        rest := rest - whole
+        count := count + 1
+    khalas
+    ameen count
+khalas
+
+bayan("Zakat ledger. Enter your savings one amount per line; 0 ends the list.")
+inshallah Purse purse := Purse(0, 0)
+bayan("Amount:")
+inshallah dirham amount := sual()
+ma_dama amount != 0 yalla
+    istikhara amount < 0 yalla
+        bayan("A debt is not savings; the amount is not recorded.")
+    khalas
+    qadarallah yalla
+        bismillah dirham entries := purse.add(amount)
+    khalas
+    bayan("Amount:")
+    amount := sual()
+khalas
+
+bayan("Entries recorded:")
+bayan(purse.entries)
+bayan("Savings:")
+bayan(purse.total)
+
+bismillah dinar zakat := purse.total |> zakatable |> share(1, 40)
+istikhara zakat == 0 yalla
+    bayan("The savings are below the nisab of 200; no zakat is due.")
+khalas
+qadarallah yalla
+    bayan("Zakat due:")
+    bayan(zakat)
+khalas
+
+ameen zakat

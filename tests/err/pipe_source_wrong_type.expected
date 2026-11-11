@@ -1,0 +1,1 @@
+compilation error: line 6:28: pipe stage 1 'double' does not fit: it takes dirham as 'x', but the value piped in is dinar — the pipe joins only what fits

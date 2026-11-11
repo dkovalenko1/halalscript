@@ -1,0 +1,7 @@
+assalamu alaikum
+kull dirham i := 1 ila 10 yalla
+    istikhara i == 2 yalla
+        i := 9
+    khalas
+khalas
+ameen 0

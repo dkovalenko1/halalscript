@@ -1,0 +1,41 @@
+Program
+  Dua noisy(dirham v) -> dirham
+    Param v dirham (immutable)
+    Block yalla
+      Bayan
+        Var v
+      Ameen
+        Var v
+  Dua quiet(dirham v) -> dirham
+    Param v dirham (immutable)
+    Block yalla
+      Ameen
+        Var v
+  Decl kept_by_call dirham bismillah (immutable)
+    Call noisy (1 argument)
+      Int 1
+  Decl kept_by_read dirham bismillah (immutable)
+    Sual
+  Decl kept_by_assignment dirham inshallah (mutable)
+    Int 0
+  Assign kept_by_assignment
+    Call noisy (1 argument)
+      Int 2
+  Decl q dirham bismillah (immutable)
+    Call quiet (1 argument)
+      Int 4
+  Decl r dirham bismillah (immutable)
+    Call quiet (1 argument)
+      Int 5
+  Bayan
+    BinOp +
+      Var q
+      Var r
+  Decl big dirham bismillah (immutable)
+    Int 2000000000
+  Decl doubled dirham bismillah (immutable)
+    BinOp *
+      Var big
+      Int 2
+  Ameen
+    Int 0

@@ -1,0 +1,29 @@
+assalamu alaikum
+# Calls inlined where they stand: in a loop body, in a dua, in a condition, in
+# the first bound of kull and in the final ameen.
+dua dirham triple(dirham v) yalla
+    ameen v * 3
+khalas
+dua dirham plus_one(dirham v) yalla
+    ameen v + 1
+khalas
+dua fatwa positive(dirham v) yalla
+    ameen v > 0
+khalas
+dua dirham start() yalla
+    ameen 2
+khalas
+dua dirham finish(dirham v) yalla
+    ameen v * 10
+khalas
+dua dirham uses_plus_one(dirham v) yalla
+    bismillah dirham w := plus_one(v)
+    ameen w
+khalas
+kull dirham i := start() ila 4 yalla
+    bayan(triple(i))
+khalas
+istikhara positive(uses_plus_one(0)) yalla
+    bayan("positive")
+khalas
+ameen finish(7)

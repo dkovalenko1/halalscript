@@ -1,0 +1,25 @@
+assalamu alaikum
+# Each parameter becomes a declaration initialised once with its argument, so
+# sual() is still asked once although the body reads the parameter twice.
+diwan Point yalla
+    bismillah dirham x
+    bismillah dirham y
+khalas
+dua dirham square(dirham x) yalla
+    inshallah dirham result := x * x
+    ameen result
+khalas
+dua dirham manhattan(Point p) yalla
+    ameen p.x + p.y
+khalas
+# Called once, from a dua that is itself inlined: both end up in the program.
+dua dirham outer(dirham x) yalla
+    bismillah dirham inner := square(x) + 1
+    ameen inner
+khalas
+# The caller's names match the callee's: x, result, and the dua's own locals.
+bismillah dirham x := sual()
+inshallah dirham result := outer(x)
+bayan(result)
+bayan(manhattan(Point(x, 4)))
+ameen x

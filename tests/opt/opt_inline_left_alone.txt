@@ -1,0 +1,40 @@
+assalamu alaikum
+# Every dua here is called once, yet none is inlined.
+diwan Counter yalla
+    inshallah dirham n
+    dua dirham bump() yalla
+        n := n + 1
+        ameen n
+    khalas
+khalas
+dua dirham sign(dirham v) yalla
+    istikhara v < 0 yalla
+        ameen 0 - 1
+    khalas
+    ameen 1
+khalas
+dua dirham loud(dirham v) yalla
+    bayan("loud")
+    ameen v
+khalas
+dua dirham second(dirham v) yalla
+    bayan("second")
+    ameen v
+khalas
+dua fatwa below(dirham v, dirham limit) yalla
+    ameen v < limit
+khalas
+inshallah Counter c := Counter(0)
+bismillah dirham bumped := c.bump()
+# sign leaves through an ameen inside istikhara.
+bayan(sign(0 - 5))
+# loud is called twice, so it stays a call; second runs after it, and moving the
+# body of second in front of the statement would print "second" before "loud".
+bayan(loud(1) + second(2))
+bismillah dirham again := loud(3)
+# The condition of ma_dama is computed on every round.
+inshallah dirham i := 0
+ma_dama below(i, 3) yalla
+    i := i + 1
+khalas
+ameen i + bumped

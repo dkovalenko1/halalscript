@@ -156,10 +156,58 @@ class IfNode(StmtNode):
 
 
 @dataclass
+class WhileNode(StmtNode):
+    """ma_dama ("as long as"): the block runs while the condition holds; positioned at 'ma_dama'."""
+
+    condition: ExprNode
+    body: BlockNode
+    visit_name = "while"
+
+    def label(self):
+        return "MaDama"
+
+    def children(self):
+        return (self.condition, self.body)
+
+
+@dataclass
+class ForNode(StmtNode):
+    """kull dirham i := 1 ila n: the block runs once for each i from 1 to n, both included.
+
+    The node is also the declaration of its counter, which cannot be assigned.
+    Positioned at the counter's name.
+    """
+
+    name: str
+    type_name: str  # dirham | dinar
+    start: ExprNode
+    end: ExprNode
+    body: BlockNode
+    visit_name = "for"
+    mutable = False
+
+    def label(self):
+        return f"Kull {self.name} {self.type_name}"
+
+    def children(self):
+        return (self.start, self.end, self.body)
+
+
+@dataclass
+class BreakNode(StmtNode):
+    """kafa ("enough"): leaves the innermost loop; positioned at 'kafa'."""
+
+    visit_name = "break"
+
+    def label(self):
+        return "Kafa"
+
+
+@dataclass
 class BinOpNode(ExprNode):
     """Positioned at the operator."""
 
-    op: str  # + - * == !=
+    op: str  # + - * == != < <= > >=
     left: ExprNode
     right: ExprNode
     visit_name = "binop"
@@ -313,16 +361,22 @@ class FieldAccessNode(ExprNode):
 
 @dataclass
 class CallNode(ExprNode):
-    """name(args): a global dua, or a member dua of the same diwan; positioned at the name."""
+    """name(args): a global dua, or a member dua of the same diwan; positioned at the name.
+
+    A stage of a pipe, x |> f(a), is the call f(x, a) with stage set: the
+    parser builds it, so every later pass sees an ordinary call.
+    """
 
     name: str
     args: list[ExprNode]
+    stage: int | None = None  # the number of the pipe stage, counted from 1
     visit_name = "call"
     function = None  # the DuaNode called; set by the semantic pass
     on_self = False  # a member dua called on the object of the caller; set by the semantic pass
 
     def label(self):
-        return f"Call {self.name} ({count(len(self.args), 'argument')})"
+        piped = f", pipe stage {self.stage}" if self.stage else ""
+        return f"Call {self.name} ({count(len(self.args), 'argument')}{piped})"
 
     def children(self):
         return tuple(self.args)

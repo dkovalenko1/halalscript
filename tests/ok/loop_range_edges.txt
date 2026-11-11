@@ -1,0 +1,32 @@
+assalamu alaikum
+# Both ends are included, and both are computed once, before the first round.
+inshallah dirham n := 3
+inshallah dirham count := 0
+kull dirham i := 1 ila n yalla
+    n := n + 1
+    count := count + 1
+khalas
+bayan(count)
+# A range that ends below its start runs no round.
+kull dirham i := 5 ila 4 yalla
+    bayan("never")
+khalas
+# A range of one value runs one round.
+kull dirham i := 7 ila 7 yalla
+    bayan(i)
+khalas
+# Ending at the largest dirham does not overflow the counter.
+count := 0
+kull dirham i := 2147483646 ila 2147483647 yalla
+    count := count + 1
+khalas
+bayan(count)
+# A dinar counter takes dirham bounds and counts past the dirham.
+kull dinar d := 2147483647 ila 2147483648 yalla
+    bayan(d)
+khalas
+# A loop whose condition is false at once runs no round.
+ma_dama count > 5 yalla
+    bayan("never")
+khalas
+ameen n

@@ -1,0 +1,33 @@
+assalamu alaikum
+# top is never called, so neither are middle and bottom once top is gone.
+diwan Wallet yalla
+    inshallah dirham coins
+    dua dirham add(dirham n) yalla
+        coins := coins + n
+        ameen coins
+    khalas
+    dua dirham never_used() yalla
+        ameen coins
+    khalas
+khalas
+dua dirham bottom(dirham x) yalla
+    ameen x + 1
+khalas
+dua dirham middle(dirham x) yalla
+    ameen bottom(x) * 2
+khalas
+dua dirham top(dirham x) yalla
+    ameen middle(x) + 3
+khalas
+# helper is reached only through used, which the program calls: both stay.
+dua dirham helper(dirham x) yalla
+    ameen x
+khalas
+dua dirham used(dirham x) yalla
+    ameen helper(x) + helper(0)
+khalas
+inshallah Wallet w := Wallet(0)
+bismillah dirham a := w.add(2)
+bismillah dirham b := used(a)
+bismillah dirham c := used(b)
+ameen c

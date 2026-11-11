@@ -5,3 +5,4 @@ __pycache__/
 *.o
 .venv/
 program
+zakat_ledger

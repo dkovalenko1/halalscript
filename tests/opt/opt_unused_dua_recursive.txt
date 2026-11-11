@@ -1,0 +1,26 @@
+assalamu alaikum
+# Duas that call each other, or themselves, but that the program never reaches.
+dua dirham even(dirham n) yalla
+    istikhara n == 0 yalla
+        ameen 1
+    khalas
+    ameen odd(n - 1)
+khalas
+dua dirham odd(dirham n) yalla
+    istikhara n == 0 yalla
+        ameen 0
+    khalas
+    ameen even(n - 1)
+khalas
+dua dirham spin(dirham n) yalla
+    ameen spin(n)
+khalas
+# A recursive dua that the program does call stays, and is not inlined.
+dua dirham fact(dirham n) yalla
+    istikhara n < 2 yalla
+        ameen 1
+    khalas
+    ameen n * fact(n - 1)
+khalas
+bayan(fact(5))
+ameen 0

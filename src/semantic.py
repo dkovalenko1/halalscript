@@ -16,7 +16,7 @@ Symbol tables:
 """
 
 from .ast_nodes import (
-    CallNode, DeclNode, FieldAccessNode, FieldDeclNode, IntLiteralNode, MemberCallNode,
+    CallNode, DeclNode, ForNode, FieldAccessNode, FieldDeclNode, IntLiteralNode, MemberCallNode,
     ParamNode, StringNode, VarNode, chain, count,
 )
 from .errors import CompileError
@@ -40,6 +40,7 @@ class SemanticChecker:
         self.function = None  # the DuaNode whose body is checked, or None at the top level
         self.top_level: set[str] = set()  # names declared at the top level, for a clearer error
         self.member_calls: list = []  # (caller, call), judged once mutation is known
+        self.loops = 0  # how many loops enclose the statement being checked
 
     def fail(self, node, message: str):
         raise CompileError(node.line, node.column, message)
@@ -170,6 +171,7 @@ class SemanticChecker:
     def visit_dua(self, node):
         frame: dict = {}
         outer, self.scopes, self.function = self.scopes, [frame], node
+        outer_loops, self.loops = self.loops, 0
         for param in node.params:
             self.check_new_name(param, "a parameter")
             if param.name in frame:
@@ -178,7 +180,7 @@ class SemanticChecker:
             frame[param.name] = param
         # The parameters and the locals of the body's own block share one frame.
         self.visit_block(node.body, new_scope=False)
-        self.scopes, self.function = outer, None
+        self.scopes, self.function, self.loops = outer, None, outer_loops
 
     # ---------- statements ----------
 
@@ -256,6 +258,9 @@ class SemanticChecker:
             self.fail(node, f"cannot assign to '{written}': '{root.name}' is a parameter of dua "
                             f"'{self.function.name}' — what was handed to a supplication is not "
                             "amended")
+        if isinstance(decl, ForNode):
+            self.fail(node, f"cannot assign to '{written}': it is the counter of 'kull' — the "
+                            "loop keeps the count, and no one else")
         if isinstance(decl, FieldDeclNode):
             self.function.mutating = True
             if not decl.mutable:
@@ -289,6 +294,36 @@ class SemanticChecker:
         if node.else_block:
             node.else_block.accept(self)
 
+    def visit_while(self, node):
+        condition = node.condition.accept(self)
+        if condition != "fatwa":
+            self.fail(node, f"the condition of 'ma_dama' must be fatwa, got {condition} — "
+                            "'as long as' needs a ruling, not a coin")
+        self.loops += 1
+        node.body.accept(self)
+        self.loops -= 1
+
+    def visit_for(self, node):
+        if node.type_name not in INTEGERS:
+            self.fail(node, f"the counter '{node.name}' of 'kull' must be dirham or dinar, not "
+                            f"{node.type_name} — only coins are counted")
+        self.check_new_name(node, "a counter")
+        for bound, verb in ((node.start, "start"), (node.end, "end")):
+            bound.accept(self)  # the counter is not in scope in its own bounds
+            self.check_assignable(bound, node.type_name, bound, f"{verb} the counter '{node.name}'")
+        # The counter and the locals of the body share one frame, so the body
+        # cannot declare a second variable of the counter's name.
+        self.scopes.append({node.name: node})
+        self.loops += 1
+        self.visit_block(node.body, new_scope=False)
+        self.loops -= 1
+        self.scopes.pop()
+
+    def visit_break(self, node):
+        if not self.loops:
+            self.fail(node, "'kafa' outside a loop — one cannot say \"enough\" to what was never "
+                            "begun")
+
     def visit_exit(self, node):
         have = node.value.accept(self)
         if self.function is None:
@@ -318,6 +353,11 @@ class SemanticChecker:
                     self.fail(node, f"cannot apply '{node.op}' to {operand} — {what} are not "
                                     "summed")
             node.type = "dinar" if "dinar" in (left, right) else "dirham"
+        elif node.op not in ("==", "!="):
+            if not (left in INTEGERS and right in INTEGERS):
+                self.fail(node, f"cannot order {left} and {right} with '{node.op}' — only coins "
+                                "are weighed against each other")
+            node.type = "fatwa"
         else:
             if not (left in INTEGERS and right in INTEGERS) and not (left == right == "fatwa"):
                 ornament = ("a ruling is not a coin" if "fatwa" in (left, right)
@@ -373,7 +413,9 @@ class SemanticChecker:
         else:
             node.function = self.duas.get(node.name)
         if node.function is None:
-            self.fail(node, f"unknown dua '{node.name}' — no such supplication was ever composed")
+            where = f"pipe stage {node.stage}: " if node.stage else ""
+            self.fail(node, f"{where}unknown dua '{node.name}' — no such supplication was ever "
+                            "composed")
         return self.check_arguments(node)
 
     def visit_member_call(self, node):
@@ -395,17 +437,31 @@ class SemanticChecker:
 
     def check_arguments(self, node):
         params = node.function.params
+        stage = getattr(node, "stage", None)
         if len(node.args) != len(params):
             verb = "is" if len(node.args) == 1 else "are"
-            self.fail(node, f"dua '{node.name}' takes {count(len(params), 'argument')}, but "
-                            f"{len(node.args)} {verb} given — a supplication is offered with "
+            where = f"pipe stage {stage}: " if stage else ""
+            self.fail(node, f"{where}dua '{node.name}' takes {count(len(params), 'argument')}, "
+                            f"but {len(node.args)} {verb} given — a supplication is offered with "
                             "exactly what it asks")
         for number, (arg, param) in enumerate(zip(node.args, params), start=1):
             arg.accept(self)
+            if stage and number == 1:
+                self.check_piped(node, arg, param)
             self.check_assignable(arg, param.type_name, arg,
                                   f"pass argument {number} of '{node.name}' as '{param.name}'")
         node.type = node.function.result_type
         return node.type
+
+    def check_piped(self, node, arg, param):
+        """The value a pipe hands to stage n must fit the first parameter of its dua."""
+        if assignable(arg.type, param.type_name):
+            return
+        source = (f"stage {arg.stage} '{arg.name}' answers with"
+                  if getattr(arg, "stage", None) else "the value piped in is")
+        self.fail(node, f"pipe stage {node.stage} '{node.name}' does not fit: it takes "
+                        f"{param.type_name} as '{param.name}', but {source} {arg.type} — the "
+                        "pipe joins only what fits")
 
     def visit_new(self, node):
         fields = self.diwans[node.type_name].fields

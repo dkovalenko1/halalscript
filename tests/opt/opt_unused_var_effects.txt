@@ -1,0 +1,23 @@
+assalamu alaikum
+# A value that calls a dua, calls sual() or computes + - * is never dropped, so
+# neither is its variable: a call may print, and arithmetic may halt on riba.
+dua dirham noisy(dirham v) yalla
+    bayan(v)
+    ameen v
+khalas
+dua dirham quiet(dirham v) yalla
+    bismillah fatwa unused := v > 2      # pure: removed, even inside a dua
+    ameen v
+khalas
+bismillah dirham kept_by_call := noisy(1)
+bismillah dirham kept_by_read := sual()
+# Its first value is pure, but a later assignment calls a dua.
+inshallah dirham kept_by_assignment := 0
+kept_by_assignment := noisy(2)
+bismillah dirham q := quiet(4)
+bismillah dirham r := quiet(5)
+bayan(q + r)
+# Nobody reads doubled, but computing it overflows: the program halts here.
+bismillah dirham big := 2000000000
+bismillah dirham doubled := big * 2
+ameen 0

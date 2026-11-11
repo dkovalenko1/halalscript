@@ -5,6 +5,9 @@
     python3 compiler.py --tokens input.txt   print the tokens, one per line
     python3 compiler.py input.txt            check the program and deliver a verdict
 
+--optimize, anywhere on the line, runs the optimizer on the checked tree before
+code generation; with --ast it prints the tree the optimizer left.
+
 On an error: one line on stderr, `compilation error: line L:C: message`, exit
 code 1, nothing on stdout and no output file. The output file is written only
 after every phase has succeeded. llvmlite is needed only to write IR.
@@ -16,6 +19,7 @@ import sys
 
 from src.errors import CompileError
 from src.lexer import lex
+from src.optimizer import optimize
 from src.parser import parse
 from src.semantic import SemanticChecker
 
@@ -25,10 +29,12 @@ sys.setrecursionlimit(20000)
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="HalalScript compiler, stage 2")
+    parser = argparse.ArgumentParser(description="HalalScript compiler, stage 3")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--ast", action="store_true", help="print the syntax tree")
     mode.add_argument("--tokens", action="store_true", help="print the tokens")
+    parser.add_argument("--optimize", action="store_true",
+                        help="remove unused variables and duas and inline duas called once")
     parser.add_argument("source", type=Path, help="path to the HalalScript program")
     parser.add_argument("output", type=Path, nargs="?", help="path of the LLVM IR file to write")
     args = parser.parse_args()
@@ -50,10 +56,15 @@ def main() -> int:
                             for tokens in lines for t in tokens))
             return 0
         tree = parse(lines)
-        if args.ast:
+        if args.ast and not args.optimize:
             print(tree.dump())
             return 0
         tree.accept(SemanticChecker())
+        if args.optimize:
+            optimize(tree)
+            if args.ast:
+                print(tree.dump())
+                return 0
         if args.output is None:
             print("The program is accepted: its syntax is sound, its types are lawful and its "
                   "greeting was returned.")

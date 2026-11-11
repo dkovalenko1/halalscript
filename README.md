@@ -9,12 +9,15 @@ scholars handing down rulings on your code: every error states the technical
 fact first, then the verdict, in a tone of **pseudo-dogmatic grandiloquent
 irony**. The joke is the compiler's self-importance, never the faith.
 
-This is **stage 2** of the course project: the language now runs. Stage 1 gave
-it a hand-written byte state-machine lexer and a recursive-descent parser;
-stage 2 adds functions (*dua*), structures with fields and member functions
-(*diwan*), input and output (*sual* and *bayan*), a semantic pass, and LLVM IR
-generated through llvmlite's builder. The grammar is in
-[`grammar.ebnf`](grammar.ebnf).
+This is **stage 3** of the course project. Stage 1 gave the language a
+hand-written byte state-machine lexer and a recursive-descent parser; stage 2
+added functions (*dua*), structures with fields and member functions (*diwan*),
+input and output (*sual* and *bayan*), a semantic pass, and LLVM IR generated
+through llvmlite's builder. Stage 3 adds [loops](#loops-ma_dama-kull-and-kafa)
+(`ma_dama`, `kull`, `kafa`), the ordering comparisons `<` `<=` `>` `>=`, pipes
+(`x |> f`), [an optimizer](#the-optimizer) behind `--optimize`, and a
+[zakat ledger](programs/zakat_ledger.txt) written in the language. The grammar
+is in [`grammar.ebnf`](grammar.ebnf).
 
 ```
 assalamu alaikum
@@ -55,7 +58,7 @@ to run the result: `lli`, or `llc` and `clang`.
 ```sh
 git clone https://github.com/dkovalenko1/halalscript.git
 cd halalscript
-git checkout stage2
+git checkout stage3
 python3 -m venv .venv
 # activate the environment as your shell requires, e.g. source .venv/bin/activate
 pip install -r requirements.txt
@@ -68,6 +71,8 @@ clang output.o -o program
 python compiler.py --ast examples/tour.halal       # print the syntax tree
 python compiler.py --tokens examples/tour.halal    # print the tokens (debugging)
 python compiler.py examples/tour.halal             # only check the program
+python compiler.py --optimize examples/tour.halal output.ll   # optimize, then compile
+python compiler.py --optimize --ast examples/tour.halal       # the tree after the optimizer
 ```
 
 `--ast`, `--tokens` and the check without an output file do not need llvmlite.
@@ -83,6 +88,30 @@ stdout, writes no output file, and exits with code 1:
 compilation error: line 3:17: 'yalla' is never answered by 'khalas' — a journey begun was not concluded
 ```
 
+## The program: a zakat ledger
+
+[`programs/zakat_ledger.txt`](programs/zakat_ledger.txt) asks for your savings
+one amount per line, until you enter 0, and refuses a negative amount with a
+message. Then it prints how many amounts it recorded, their total, and the
+zakat due on them: nothing below the nisab of 200, one fortieth from it up.
+The amounts go into a `Purse` diwan through its member dua `add`. A `ma_dama`
+loop asks for the next amount until it reads 0, and the dua `share` divides
+with a second `ma_dama` loop, since the language has no `/`. The zakat is one
+pipe: `purse.total |> zakatable |> share(1, 40)`. To build it into a native
+program and run the two recorded sessions:
+
+```sh
+python compiler.py programs/zakat_ledger.txt zakat_ledger.ll
+llc -filetype=obj zakat_ledger.ll -o zakat_ledger.o
+clang zakat_ledger.o -o zakat_ledger
+./zakat_ledger < programs/zakat_ledger.due.in        # prints programs/zakat_ledger.due.expected
+./zakat_ledger < programs/zakat_ledger.exempt.in     # prints programs/zakat_ledger.exempt.expected
+```
+
+Build it on the machine that runs it: the `.ll` file names the target of the
+machine that compiled it. `./zakat_ledger` alone asks for the amounts on the
+terminal. `check.py` runs both sessions under `lli`.
+
 ## VS Code extension
 
 [`vscode-halalscript/`](vscode-halalscript/README.md) adds HalalScript support to
@@ -90,7 +119,8 @@ VS Code for `.halal` files: highlighting, the compiler's syntax and semantic
 errors underlined as you type, keyword rulings and signatures on hover,
 completion (after `t.purse.`, the fields and member duas of that diwan),
 snippets, `yalla`/`khalas` bracket matching, Eastern Arabic digit conversion, a
-syntax-tree viewer, and a command that runs the program in a terminal.
+syntax-tree viewer, and a command that runs the program in a terminal. It knows
+the stage 2 language: its bundled compiler does not accept loops or pipes yet.
 
 ```sh
 cd vscode-halalscript && npm install && npm run package
@@ -101,6 +131,7 @@ code --install-extension halalscript-0.2.0.vsix
 
 ```sh
 python check.py                  # set LLI=/path/to/lli if lli is not on PATH
+python check.py --optimize       # the same suite, every program compiled with --optimize
 ```
 
 `check.py` compiles every program in `tests/ok` to `.ll`, runs it under `lli`,
@@ -110,9 +141,14 @@ so `.expected` holds only what the program prints). A program with a `.ast`
 file must also print exactly that tree with `--ast`. Every program in
 `tests/err` must be rejected with stderr equal to its `.expected` file, nothing
 on stdout and no output file. Every program in `examples/` must compile and
-run. It prints a PASS/FAIL table, lists the failed tests, and exits non-zero if
-any test fails. There are 41 valid and 100 invalid programs, each named after
-what it covers; all 41 valid ones run end to end.
+run. Every program in `tests/opt` must print its `.ast` file with
+`--optimize --ast`, and its `.expected` output both with and without
+`--optimize`. Each recorded session of a program in `programs/`
+(`NAME.SESSION.in`) must print exactly `NAME.SESSION.expected`. It prints a
+PASS/FAIL table, lists the failed tests, and exits non-zero if any test fails.
+There are 47 valid, 109 invalid and 7 optimizer programs, each named after what
+it covers. With `--optimize`, `check.py` compiles every test that way and skips
+the `.ast` files of `tests/ok`, which hold the tree before the optimizer.
 
 ---
 
@@ -236,10 +272,12 @@ ameen a
 |----------|---------|
 | `+ - *` | arithmetic; `*` binds tighter, equal levels group left to right |
 | `==` `!=` | comparison; at most one per expression, weaker than arithmetic |
+| `<` `<=` `>` `>=` | ordering of dirhams and dinars, at the level of `==` |
+| `\|>` | pipe: `x \|> f` is `f(x)`; binds loosest of all |
 | `la` | logical not (*la*, "no"); binds tightest: `la a == b` is `(la a) == b` |
 | `( )` | grouping |
 
-There is no unary minus (write `0 - x`), no `/`, no `<` or `>`.
+There is no unary minus (write `0 - x`) and no `/`.
 
 > **Official Ruling on Equality.** Equality is established by two witnesses,
 > `==`; a single `=` is one witness, and one witness establishes nothing.
@@ -301,6 +339,192 @@ qadarallah yalla
 khalas
 ameen a
 ```
+
+### Loops: `ma_dama`, `kull` and `kafa`
+
+*Ma dama*, "as long as": `ma_dama <fatwa> yalla ... khalas` runs its block again
+and again while the fatwa holds, checking it before every round. *Kull*,
+"each": `kull dirham i := 1 ila n yalla ... khalas` runs its block once for
+each `i` from `1` to `n` (*ila*, "up to"), both included. *Kafa*, "enough",
+leaves the innermost loop.
+
+The rules:
+
+- The condition of `ma_dama` is a fatwa.
+- The counter of `kull` is a dirham or a dinar, and both bounds must fit its
+  type. Both bounds are computed once, before the first round, so changing a
+  variable that a bound reads does not change the number of rounds. A range
+  whose last value is below its first runs no round.
+- The counter is declared by the loop: it lives in the block only, it cannot
+  be assigned, and the block cannot declare a second variable of its name.
+- The counter never overflows. The loop stops when the counter reaches the
+  last value, before adding 1, so `kull dirham i := 1 ila 2147483647` is legal.
+- A block of a loop may declare variables; each round initialises them again.
+- `kafa` stands only inside a loop, and is the last statement of its block. A
+  `kafa` in a dua body leaves a loop of that dua, never a loop around the call.
+- `ameen` inside a loop leaves the dua (or ends the program) at once.
+
+> **Official Ruling.** *Kull* counts what it was told to count, and no one else
+> touches the count. One who must stop early says *kafa*, and the loop yields;
+> but *kafa* said outside a loop is a word thrown into the wind.
+
+```
+assalamu alaikum
+# The smallest n whose square is above a limit read from the user.
+bismillah dirham limit := sual()
+inshallah dirham n := 1
+ma_dama n * n <= limit yalla
+    n := n + 1
+khalas
+ameen n
+```
+
+```
+assalamu alaikum
+# A multiplication table without its diagonal, and only up to 3 x 3.
+kull dirham row := 1 ila 9 yalla
+    istikhara row > 3 yalla
+        kafa
+    khalas
+    kull dirham column := 1 ila 3 yalla
+        istikhara row != column yalla
+            bismillah dirham product := row * column
+            bayan(product)
+        khalas
+    khalas
+khalas
+ameen 0
+```
+
+**The IR of a `kull` loop.** The excerpt is `output.ll` for
+`kull dirham i := 1 ila 10 yalla sum := sum + i khalas`, without the overflow
+check of `+` inside the body:
+
+```llvm
+  store i32 1, i32* %"i"
+  br label %"for.cond"
+for.cond:
+  %".5" = load i32, i32* %"i"
+  %".6" = icmp sle i32 %".5", 10
+  br i1 %".6", label %"for.body", label %"for.end"
+  ...                                  ; for.body adds i to sum, then: br label %"for.step"
+for.step:
+  %".21" = load i32, i32* %"i"
+  %".22" = icmp eq i32 %".21", 10
+  br i1 %".22", label %"for.end", label %"for.next"
+for.next:
+  %".24" = add nsw i32 %".21", 1
+  store i32 %".24", i32* %"i"
+  br label %"for.cond"
+```
+
+The counter lives in an `alloca` from the entry block, and the store before
+`for.cond` gives it the first value; both bounds were computed there, once.
+`for.cond` compares the counter with the last value and enters `for.body` or
+jumps past the loop to `for.end`; `kafa` is a `br` to `for.end` as well.
+`for.step` leaves when the counter has reached the last value, so `for.next`
+adds 1 only when the result fits, and its `br label %"for.cond"` is the back
+edge that makes the loop. A `ma_dama` loop has the same shape with three
+blocks: `while.cond`, `while.body`, whose last `br` back to `while.cond` is the
+back edge, and `while.end`.
+
+### Pipes: `|>`
+
+`x |> f` calls the dua `f` with `x`, and `x |> f |> g(a)` is `g(f(x), a)`: each
+stage is a global dua, called with the value of the stages before it as its
+first argument and the arguments in its brackets after that. A pipe reads in
+the order things happen, where nested calls read inside out.
+
+The rules:
+
+- A stage is the name of a dua, with or without brackets. A diwan, a variable
+  or a chain such as `c.add` cannot be a stage. Inside a member dua, a stage
+  named like a member dua of the same diwan calls it on the object, as a plain
+  call there would.
+- `|>` binds loosest of all: `2 + 3 |> f` pipes 5, and a comparison of a pipe
+  needs brackets, `(x |> f) == 3`.
+- The stages run left to right. The value is computed first, then the stage
+  that takes it, then the next one; a stage's own arguments come after its
+  piped value.
+- The type of each stage's answer is checked against the first parameter of
+  the next stage, with the usual widening of a dirham into a dinar. An error
+  names the stage that does not fit, counted from 1, and the stage before it:
+  `pipe stage 3 'double' does not fit: it takes dirham as 'x', but stage 2 'big'
+  answers with fatwa`. A wrong number of arguments or an unknown dua names its
+  stage too.
+- A pipe stands wherever a value does: in a declaration, an assignment, a
+  condition, `bayan`, `ameen` and the arguments of a call.
+
+> **Official Ruling.** A value is handed from one supplication to the next, as
+> a petition passes from clerk to clerk. Each clerk accepts only the coin he
+> asked for; a petition that does not fit is returned with the name of the
+> clerk who refused it.
+
+```
+assalamu alaikum
+dua dirham add(dirham x, dirham y) yalla
+    ameen x + y
+khalas
+dua dirham double(dirham x) yalla
+    ameen x * 2
+khalas
+# double(add(sual(), 3)), read left to right
+ameen sual() |> add(3) |> double
+```
+
+```
+assalamu alaikum
+diwan Point yalla
+    bismillah dirham x
+    bismillah dirham y
+khalas
+dua Point mirror(Point p) yalla
+    ameen Point(p.y, p.x)
+khalas
+dua fatwa on_axis(Point p) yalla
+    ameen p.x == 0
+khalas
+# An object flows through a pipe like any value.
+istikhara Point(0, 5) |> mirror |> on_axis yalla
+    bayan("on the axis")
+khalas
+qadarallah yalla
+    bayan("off the axis")
+khalas
+ameen 0
+```
+
+The parser turns a pipe into calls: each stage is a `Call` with its stage
+number, so the semantic pass, the optimizer and the code generator see an
+ordinary call, and only the error messages speak of stages. In `--ast`:
+
+```
+Decl zakat dinar bismillah (immutable)
+  Call share (3 arguments, pipe stage 2)
+    Call zakatable (1 argument, pipe stage 1)
+      Field purse.total
+    Int 1
+    Int 40
+```
+
+**The IR of a pipe.** The excerpt is `output.ll` for the zakat line of
+[the program](#the-program-a-zakat-ledger),
+`bismillah dinar zakat := purse.total |> zakatable |> share(1, 40)`:
+
+```llvm
+  %".110" = getelementptr inbounds %"Purse", %"Purse"* %"purse", i32 0, i32 0
+  %".111" = load i64, i64* %".110"
+  %".112" = call i64 @"hs.zakatable"(i64 %".111")
+  %".113" = call i64 @"hs.share"(i64 %".112", i32 1, i32 40)
+  store i64 %".113", i64* %"zakat"
+```
+
+The `getelementptr` reaches field 0 of the object `purse`, its `total`, and
+the `load` reads the value the pipe starts from. Each stage is one `call`, in
+the order of the stages, and the register one call returns is the first
+argument of the next: `%".112"`, the answer of `zakatable`, goes into `share`
+before its own arguments 1 and 40. The last answer is stored in the slot of
+`zakat`; there is no trace of the pipe left in the IR, only two calls.
 
 ### Eastern Arabic numerals
 
@@ -527,15 +751,16 @@ literals; the exit line of a fatwa answer uses them too.
 | printing and reading | `print_every_kind`, `bayan_nul_byte`, `read_input`, `read_not_a_number` | `bayan_as_value`, `bayan_two_values`, `bayan_empty`, `string_outside_bayan`, `sual_with_argument` |
 | program and diwan order | every program with a diwan | `dua_after_statement`, `diwan_after_dua`, `dua_inside_dua`, `field_after_member_dua`, `member_dua_before_field` |
 | types and declarations (stage 1 rules) | `scope_shadowing`, `decl_all_kinds`, `long_expression` | `undeclared_name`, `redeclared_in_block`, `variable_named_like_dua`, `member_dua_named_like_diwan`, `assign_bismillah`, `assign_wallahi`, `narrowing_dinar_to_dirham`, `compare_fatwa_with_dirham`, `arithmetic_on_fatwa`, `condition_not_fatwa`, `la_on_dirham` |
+| loops | `loop_nested_kafa`, `loop_range_edges`, `loop_ameen_inside` | `loop_kafa_outside`, `loop_assign_counter`, `loop_counter_after_loop`, `loop_statement_after_kafa`, `loop_condition_not_fatwa` |
+| pipes | `pipe_chain_arguments`, `pipe_order_and_places`, `pipe_member_stage` | `pipe_stage_wrong_type`, `pipe_source_wrong_type`, `pipe_stage_argument_count`, `pipe_into_member_chain`, `pipe_unknown_stage` |
 | riba | `wallahi_folding`, `runtime_riba`, `read_beyond_dirham`, `literal_i64_max` | `wallahi_fold_overflow`, `wallahi_runtime_value`, `literal_too_big_for_dirham`, `literal_beyond_i64` |
 
 ### Names and reserved words
 
 Names are ASCII letters, digits and `_`, not starting with a digit. Reserved:
 `wallahi bismillah inshallah dirham dinar fatwa halal haram istikhara
-qadarallah yalla khalas ameen la assalamu alaikum ma_dama diwan dua sual
-bayan` (`ma_dama`, "as long as", is held for the `while` loop of a later
-stage). Keywords are lowercase, so `Bismillah` is an ordinary name.
+qadarallah yalla khalas ameen la assalamu alaikum ma_dama kull ila kafa diwan
+dua sual bayan`. Keywords are lowercase, so `Bismillah` is an ordinary name.
 
 ---
 
@@ -593,13 +818,20 @@ Program
       Field p.x
 ```
 
+The loops print as `MaDama` (its condition, then its block), `Kull i dirham`
+(the first value, the last value, then the block) and `Kafa`.
+
+A stage of a pipe prints as a `Call` with its number: `Call share (3
+arguments, pipe stage 2)`.
+
 `Field p.x` is a field chain; `MemberCall ... on c.center` is a chain that ends
 in a member call; `Call` is a call of a global dua, or of a member dua of the
 same diwan from inside it.
 
 Node classes (`src/ast_nodes.py`): `ASTNode` → `ProgramNode`, `BlockNode`,
 `DiwanNode`, `FieldDeclNode`, `DuaNode`, `ParamNode`, `StmtNode` (`DeclNode`,
-`AssignNode`, `IfNode`, `ExitNode`, `PrintNode`) and `ExprNode` (`BinOpNode`,
+`AssignNode`, `IfNode`, `WhileNode`, `ForNode`, `BreakNode`, `ExitNode`,
+`PrintNode`) and `ExprNode` (`BinOpNode`,
 `NotNode`, `IntLiteralNode`, `BoolLiteralNode`, `VarNode`, `FieldAccessNode`,
 `CallNode`, `MemberCallNode`, `NewNode`, `ReadNode`, `StringNode`). Every node
 keeps the line and column of the token it came from.
@@ -611,6 +843,7 @@ keeps the line and column of the token it came from.
 | `src/lexer.py` | byte state machine → one token vector per line |
 | `src/parser.py` | recursive descent, one method per grammar rule → AST |
 | `src/semantic.py` | symbol tables for variables, duas and diwans; every check above |
+| `src/optimizer.py` | with `--optimize`: removes unused variables and duas, inlines duas called once |
 | `src/codegen.py` | LLVM IR through llvmlite's `IRBuilder`; the only IR text is `str(module)` |
 | `compiler.py` | the command line; writes `output.ll` only when every phase succeeded |
 
@@ -624,3 +857,106 @@ Every function is declared before any body is built. `printf`, `scanf` and
 `exit` are declared from the C library; the format strings are global
 constants; printing an object walks the diwan's field table with one `gep`,
 `load` and `printf` per field.
+
+## The optimizer
+
+`--optimize` runs three transformations of the checked tree before code
+generation, and repeats them until none of them changes anything. The semantic
+pass has already pointed every name at its declaration and every call at its
+dua, so the optimizer compares objects, not names: two variables named `x` in
+different scopes are different variables, and shadowing needs no special care.
+
+**Unused variables.** A declaration that nobody reads is removed together with
+every assignment to it, again and again, so a variable read only by another
+removed variable goes next. A declaration stays if its value, or the value of
+any assignment to it, calls a dua, calls `sual()` or computes `+`, `-` or `*`.
+A call may print or read, and arithmetic may halt the program on riba, which
+the program's output shows; the language has no statement that would keep the
+computation without the variable. A `wallahi` value is the exception: the
+semantic pass computed it, and checked it for riba, at compile time. Parameters
+and the counter of `kull` are never removed. Counting has one limit: a variable
+that only feeds itself, `rounds := rounds + i`, is read by its own assignment,
+so it stays.
+
+**Unused duas.** The optimizer walks the calls from the top-level statements
+to the duas they call, and on to the duas those call. Every dua it does not
+reach is removed with its body, member duas included. One walk finds duas that
+call only each other, or only themselves.
+
+**Inlining.** A global dua called exactly once is replaced at its call site:
+
+- each parameter becomes `bismillah <type> f.<param> := <argument>`, so an
+  argument is computed once even when the body reads it twice;
+- the statements of the body follow, every local renamed `f.<name>`;
+- `bismillah <type> f.ameen := <value of the ameen>` holds the answer, and the
+  call is replaced by the variable `f.ameen`;
+- then the dua has no call left, and the next round removes it.
+
+A `.` cannot stand in a source name, so the new names cannot collide with the
+caller's, and `ameen` is a reserved word, so `f.ameen` cannot collide with a
+renamed local of `f`. These statements go in front of the statement that held
+the call, which then reads `f.ameen`. The inliner leaves these shapes alone:
+
+- a member dua, because its body works on the fields of an object;
+- a recursive dua: its own call counts, so it is never called exactly once;
+- a body that leaves through an `ameen` inside a block, for example inside an
+  `istikhara`: moved into the caller, that `ameen` would end the caller;
+- a call in the condition of `ma_dama`, which is computed on every round;
+- a call computed after a call, a `sual()` or an arithmetic operation of the
+  same statement: moving the body in front would run it first. In
+  `bayan(loud(1) + quiet(2))`, `quiet` stays a call unless `loud` was inlined
+  first.
+
+The tests are in `tests/opt`, two or more per transformation:
+
+| Transformation | Tests |
+|----------------|-------|
+| unused variables | `opt_unused_var_chain`, `opt_unused_var_effects` |
+| unused duas | `opt_unused_dua_chain`, `opt_unused_dua_recursive` |
+| inlining | `opt_inline_basic`, `opt_inline_positions`, `opt_inline_left_alone` |
+
+**Inlining in the IR.** For this program:
+
+```
+assalamu alaikum
+dua dirham square(dirham x) yalla
+    ameen x * x
+khalas
+bismillah dirham n := sual()
+ameen square(n + 1)
+```
+
+Without `--optimize`, `main` computes `n + 1` and calls the dua, which has a
+function of its own:
+
+```llvm
+define i32 @"hs.square"(i32 %"x")
+{
+entry:
+  %"x.1" = alloca i32
+  store i32 %"x", i32* %"x.1"
+  %".4" = load i32, i32* %"x.1"
+  %".5" = load i32, i32* %"x.1"
+  %".6" = call {i32, i1} @"llvm.smul.with.overflow.i32"(i32 %".4", i32 %".5")
+  ...
+  ret i32 %".7"
+}
+...
+  %".33" = call i32 @"hs.square"(i32 %".25")      ; in main, %".25" is n + 1
+```
+
+With `--optimize`, `hs.square` is gone; `main` stores the argument in
+`square.x`, multiplies in place, and reads the answer from `square.ameen`:
+
+```llvm
+  %"square.x" = alloca i32
+  %"square.ameen" = alloca i32
+  ...
+  store i32 %".25", i32* %"square.x"
+  %".34" = load i32, i32* %"square.x"
+  %".35" = load i32, i32* %"square.x"
+  %".36" = call {i32, i1} @"llvm.smul.with.overflow.i32"(i32 %".34", i32 %".35")
+  ...
+  store i32 %".37", i32* %"square.ameen"
+  %".46" = load i32, i32* %"square.ameen"
+```
